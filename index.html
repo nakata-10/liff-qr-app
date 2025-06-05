@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QRスキャンでポイント獲得</title>
+  <!-- LIFF JavaScript SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2.27/sdk.js"></script>
+  <!-- html5-qrcode ライブラリ -->
+  <script src="html5-qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 1rem; }
+    #qr-reader { width: 100%; max-width: 400px; margin: auto; }
+    #status { margin-top: 1rem; }
+    #btn-scan { padding: 0.5rem 1rem; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <h2>QRコードを読み取ってポイントを獲得</h2>
+  <div id="liff-init-error" style="color:red;"></div>
+  <div id="content" style="display:none;">
+    <button id="btn-scan">QRコードをスキャンする</button>
+    <div id="qr-reader" style="display:none;"></div>
+    <div id="status"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
