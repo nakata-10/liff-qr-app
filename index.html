@@ -2,28 +2,64 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QRスキャンでポイント獲得</title>
-  <!-- LIFF JavaScript SDK -->
-  <script src="https://static.line-scdn.net/liff/edge/2.27/sdk.js"></script>
-  <!-- html5-qrcode ライブラリ -->
-  <script src="html5-qrcode.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LINE QR ポイント獲得アプリ</title>
+
+  <!-- 1) LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- 2) HTML5-QRCode（QR読み取り用） -->
+  <script src="lib/html5-qrcode.min.js"></script>
+  <!-- 3) QRCode.js（QR生成用） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- 4) アプリ本体ロジック -->
+  <script defer src="app.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; padding: 1rem; }
-    #qr-reader { width: 100%; max-width: 400px; margin: auto; }
-    #status { margin-top: 1rem; }
-    #btn-scan { padding: 0.5rem 1rem; font-size: 1rem; }
+    body {
+      font-family: sans-serif;
+      padding: 16px;
+      text-align: center;
+    }
+    #message {
+      margin: 16px 0;
+      font-size: 1.1em;
+      color: #333;
+    }
+    button {
+      margin: 8px;
+      padding: 0.7em 1.2em;
+      font-size: 1em;
+    }
+    #qrcode {
+      margin: 16px auto;
+      width: 200px;
+      height: 200px;
+    }
+    #qr-reader {
+      width: 350px;
+      margin: 32px auto;
+      display: none;
+    }
+    #qr-result {
+      margin-top: 16px;
+      font-size: 1.1em;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
-  <h2>QRコードを読み取ってポイントを獲得</h2>
-  <div id="liff-init-error" style="color:red;"></div>
-  <div id="content" style="display:none;">
-    <button id="btn-scan">QRコードをスキャンする</button>
-    <div id="qr-reader" style="display:none;"></div>
-    <div id="status"></div>
-  </div>
+  <h1>LINE QR ポイント獲得アプリ</h1>
+  <p id="message">LINE へのログイン状態を確認中…</p>
 
-  <script src="app.js"></script>
+  <!-- QRコード生成 -->
+  <button id="btn-generate" disabled>QRコードを生成する</button>
+  <div id="qrcode"></div>
+
+  <hr style="margin: 40px 0;" />
+
+  <!-- QRコード読み取り -->
+  <button id="btn-scan" disabled>QRコードをスキャンする</button>
+  <div id="qr-reader"></div>
+  <div id="qr-result">読み取り結果がここに表示されます</div>
 </body>
 </html>
