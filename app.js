@@ -35,8 +35,8 @@ function setupQrGeneration() {
     // QR コード生成
     new QRCode(document.getElementById('qrcode'), {
       text: link,
-      width: 200,
-      height: 200,
+      width: 300,
+      height: 300,
     });
   });
 }
