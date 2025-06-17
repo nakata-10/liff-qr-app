@@ -3,6 +3,6 @@
   "Values": {
     "AzureWebJobsStorage": "...",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "AZURE_FUNCTION_KEY": "dRWXE3NU05zgBjGE77zOtWm5utCtjQJ6dKUtcnJJS2BDAzFuxaU2qQ=="
+    "AZURE_FUNCTION_KEY": "_Ds88BbS1YEKV0BGBRfjwcko_yu83JJ_R-eR1MPV05VbAzFuMDkzEg=="
   }
 }
