@@ -14,35 +14,34 @@
       margin-bottom: 1.5rem;
     }
     #qr-result p {
+      font-size: 1rem;
       margin: 0.5rem 0;
     }
   </style>
+  <!-- config.js で APP_CONFIG を読み込む -->
+  <script src="config.js"></script>
 </head>
 <body>
   <h1>QR スキャン受付</h1>
-  <p id="status">処理中…</p>
+  <p id="status">読み取りデータを送信中…</p>
   <div id="qr-result"></div>
 
-  <script src="config.js"></script>
   <script>
   (async () => {
-    const qs = new URLSearchParams(location.search);
-    const code    = qs.get('code');
-    const idToken = qs.get('idToken');
-    const userId  = qs.get('userId');
+    const params = new URLSearchParams(window.location.search);
+    const code    = params.get('code')    || '';
+    const idToken = params.get('idToken') || '';
+    const userId  = params.get('userId')  || '';
+
     const statusEl = document.getElementById('status');
     const resultEl = document.getElementById('qr-result');
-
-    if (!code || !idToken || !userId) {
-      statusEl.textContent = 'パラメータが不足しています';
-      return;
-    }
 
     statusEl.textContent = 'ポイント付与中…';
 
     try {
+      // 【修正】FUNCTION_BASE_URL → AZURE_FUNCTION_URL
       const res = await fetch(
-        window.APP_CONFIG.FUNCTION_BASE_URL, {
+        window.APP_CONFIG.AZURE_FUNCTION_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
