@@ -2,21 +2,44 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <!-- レスポンシブ対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LINE QR ポイント獲得アプリ</title>
+
+  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- アプリ設定 -->
   <script src="config.js"></script>
+  <!-- アプリ本体ロジック -->
   <script src="app.js" defer></script>
+
   <style>
-    /* 最初は全要素非表示 */
-    body > * { display: none; }
-    /* 最終的に #qrcode のみ表示 */
-    #qrcode { margin: 0 auto; display: block; }
+    /* 初期状態ではすべて非表示 */
+    body > * {
+      display: none;
+    }
+    /* JS側で表示させたい要素に付与 */
+    .visible {
+      display: block !important;
+    }
+    /* タイトル・ステータスのスタイル */
+    #title,
+    #status {
+      text-align: center;
+      margin-bottom: 16px;
+      font-family: sans-serif;
+    }
+    /* QRコード表示領域 */
+    #qrcode {
+      margin: 0 auto;
+      width: 300px;
+      height: 300px;
+    }
   </style>
 </head>
 <body>
-  <!-- これらは JS で一時的に表示してもすぐ隠されるので、
-       HTML 側ではそのままにしておいて大丈夫です -->
   <h1 id="title">LINE QR ポイント獲得アプリ</h1>
   <p id="status">LINE へのログイン状態を確認中…</p>
   <div id="qrcode"></div>
