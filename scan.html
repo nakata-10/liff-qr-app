@@ -4,21 +4,10 @@
   <meta charset="UTF-8" />
   <title>QR スキャン受付</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      text-align: center;
-    }
-    #status {
-      font-size: 1.2rem;
-      margin-bottom: 1.5rem;
-    }
-    #qr-result p {
-      font-size: 1rem;
-      margin: 0.5rem 0;
-    }
+    body { font-family: sans-serif; padding: 2rem; text-align: center; }
+    #status { font-size: 1.2rem; margin-bottom: 1.5rem; }
+    #qr-result p { font-size: 1rem; margin: 0.5rem 0; }
   </style>
-  <!-- config.js で APP_CONFIG を読み込む -->
   <script src="config.js"></script>
 </head>
 <body>
@@ -28,42 +17,41 @@
 
   <script>
   (async () => {
-    const params = new URLSearchParams(window.location.search);
-    const code    = params.get('code')    || '';
-    const idToken = params.get('idToken') || '';
-    const userId  = params.get('userId')  || '';
+    // QR側の code, idToken, userId を取得
+    const params  = new URLSearchParams(window.location.search);
+    const qrCode   = params.get('code')    || '';  
+    const idToken  = params.get('idToken') || '';
+    const userId   = params.get('userId')  || '';
+    const key      = window.APP_CONFIG.FUNCTION_KEY;
 
     const statusEl = document.getElementById('status');
     const resultEl = document.getElementById('qr-result');
-
     statusEl.textContent = 'ポイント付与中…';
 
     try {
-      // 【修正】FUNCTION_BASE_URL → AZURE_FUNCTION_URL
       const res = await fetch(
-        window.APP_CONFIG.AZURE_FUNCTION_URL, {
+        window.APP_CONFIG.AWARD_FUNCTION_URL,
+        {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            // 関数キー認証はヘッダーで
+            'x-functions-key': key
           },
           body: JSON.stringify({
             userId,
             points: 10,
             scanInfo: {
-              qrText: code,
+              qrText: qrCode,
               timestamp: new Date().toISOString()
             }
           })
         }
       );
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const json = await res.json();
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      resultEl.innerHTML = `
-        <p>合計ポイント: <strong>${json.totalPoints}</strong></p>
-      `;
+      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong></p>`;
     } catch (err) {
       console.error(err);
       statusEl.textContent = 'エラーが発生しました: ' + err.message;
