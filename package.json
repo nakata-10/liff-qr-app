@@ -1,0 +1,16 @@
+{
+  "name": "liff-qr-app",
+  "version": "1.0.0",
+  "description": "LINE LIFF アプリ：QRコード生成＆ポイント付与テスト用",
+  "homepage": "https://nakata10.github.io/liff-qr-app",
+  "scripts": {
+    "start": "serve .",
+    "predeploy": "echo \"no build step, ready to deploy\"",
+    "deploy": "gh-pages -d ."
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}
