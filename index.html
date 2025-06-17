@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LINE QR ポイント獲得アプリ</title>
+
+  <script src="config.js"></script>
+  <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script defer src="app.js"></script>
+
+  <style>
+    body { font-family: sans-serif; padding:16px; text-align:center; }
+    button { margin:8px; padding:0.7em 1.2em; font-size:1em; }
+    #qrcode { margin:16px auto; width:200px; height:200px; }
+    #message { margin:16px 0; font-size:1.1em; color:#333; }
+  </style>
+</head>
+<body>
+  <h1>LINE QR ポイント獲得アプリ</h1>
+  <p id="message">LINE へのログイン状態を確認中…</p>
+
+  <!-- QRコード生成のみ -->
+  <button id="btn-generate" disabled>QRコードを生成する</button>
+  <div id="qrcode"></div>
+  <div id="qr-result"></div>
+</body>
+</html>
