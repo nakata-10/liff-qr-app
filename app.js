@@ -1,69 +1,66 @@
 // app.js
 
-// 事前に index.html 等で
-// <script src="config.js"></script>             ← APP_CONFIG を定義したファイル
-// <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  ← QRCode.js
-// を読み込んでおいてください。
+// 事前に index.html で以下を読み込んでおいてください：
+// <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+// <script src="config.js"></script>
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. LIFF 初期化
-  await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
-  
-  // 2. 未ログインならログインへリダイレクト
-  if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: window.location.href });
+  console.log('app.js loaded');
+  console.log('window.APP_CONFIG:', window.APP_CONFIG);
+
+  // 1. LIFF SDK 初期化
+  try {
+    await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
+    console.log('▶ liff.init done, isLoggedIn:', liff.isLoggedIn());
+  } catch (e) {
+    console.error('LIFF SDK の初期化に失敗しました:', e);
+    document.getElementById('message').textContent = 'LIFF 初期化エラー';
     return;
   }
 
-  // 3. ボタン有効化
+  // 2. ログインチェック
+  if (!liff.isLoggedIn()) {
+    console.log('▶ 未ログイン → LIFF ログインへ');
+    liff.login({ redirectUri: window.location.href, scope: 'profile openid' });
+    return;
+  }
+
+  // 3. ログイン済み表示 & ボタン有効化
+  document.getElementById('message').textContent = 'ログイン済みです';
   const btn = document.getElementById('btn-generate');
   btn.disabled = false;
   btn.addEventListener('click', generateQr);
 });
 
 async function generateQr() {
-  // 4. ID トークン取得
+  console.log('▶ generateQr called');
+
+  // 4. ID トークン・ユーザーID取得
   const idToken = liff.getIDToken();
-  
-  // 5. 一意のコード（例：タイムスタンプ）を生成
+  const userId  = liff.getContext().userId;
+  console.log('▶ ID Token & userId:', idToken ? '(token present)' : '(no token)', userId);
+
+  // 5. 一意のコード生成
   const code = Date.now().toString();
-  
+
   // 6. スキャン用 URL を組み立て
   const scanUrl = [
     `${location.origin}/scan.html`,
     `?code=${encodeURIComponent(code)}`,
     `&idToken=${encodeURIComponent(idToken)}`,
-    `&liffClientId=${encodeURIComponent(window.APP_CONFIG.LIFF_ID)}`,
-    `&liffRedirectUri=${encodeURIComponent(window.location.href)}`
+    `&userId=${encodeURIComponent(userId)}`
   ].join('');
+  console.log('▶ scanUrl:', scanUrl);
 
-  // 7. 画面に QR コードを表示
+  // 7. QR コード表示
   const qrContainer = document.getElementById('qrcode');
-  qrContainer.innerHTML = '';  // クリア
+  qrContainer.innerHTML = ''; // クリア
   new QRCode(qrContainer, {
     text: scanUrl,
     width: 300,
     height: 300,
-    correctLevel: QRCode.CorrectLevel.M
+    correctLevel: QRCode.CorrectLevel.H
   });
 
-  // 8. Azure Function（ポイント付与ロジック）に事前登録／通知する場合
-  //    （必要ならここで fetch してください）
-  /*
-  fetch(window.APP_CONFIG.FUNCTION_BASE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${idToken}`
-    },
-    body: JSON.stringify({
-      userId: liff.getContext().userId,
-      points: 0,            // 生成通知なら 0
-      scanInfo: { code }
-    })
-  })
-  .then(res => res.json())
-  .then(json => console.log('通知結果', json))
-  .catch(err => console.error('通知エラー', err));
-  */
+  document.getElementById('qr-result').textContent = 'QRコードをスキャンしてください';
 }
