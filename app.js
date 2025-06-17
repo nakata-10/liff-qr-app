@@ -14,10 +14,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   // ——— ここで自動生成 ———
   generateQrCode();
 
-  // （もしボタンも残すなら、有効化してあとから手動でも再生成できるように）
-  const btn = document.getElementById('btn-generate');
-  btn.disabled = false;
-  btn.addEventListener('click', generateQrCode);
 });
 
 /**
