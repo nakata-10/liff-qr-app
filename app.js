@@ -19,9 +19,6 @@ function generateQrCode() {
   const idToken = liff.getIDToken();
   const userId  = liff.getContext().userId;
 
-  // 一意なコード（例: userId:timestamp）
-  const code = `${userId}:${Date.now()}`;
-
   // スキャン先 URL を生成
   const scanUrl =  [
     APP_CONFIG.SCAN_BASE_URL,
