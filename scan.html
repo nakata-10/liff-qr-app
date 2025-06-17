@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!-- scan.html -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -7,85 +6,50 @@
   <title>QRスキャン受け口</title>
   <script src="config.js"></script>
   <script>
-    window.addEventListener('DOMContentLoaded', async () => {
-      const params = new URLSearchParams(location.search);
-      const codeText = params.get('code');
-      if (!codeText) {
-        document.body.textContent = 'QR 情報が見つかりませんでした';
-        return;
-      }
+  window.addEventListener('DOMContentLoaded', async () => {
+    // 1) LIFF 初期化
+    await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
+    // 2) ログインチェック
+    if (!liff.isLoggedIn()) {
+      liff.login({ redirectUri: window.location.href, scope: 'profile openid' });
+      return;
+    }
 
-      // LIFF 初期化（任意・匿名 API 呼び出しなら不要）
-      // await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
+    // URL から code パラメータ取得
+    const params = new URLSearchParams(location.search);
+    const codeText = params.get('code');
+    if (!codeText) {
+      document.body.textContent = 'QR 情報が見つかりませんでした';
+      return;
+    }
 
-      // API エンドポイント
-      const url = window.APP_CONFIG.AZURE_FUNCTION_URL;
-      // 認証不要なら Authorization ヘッダも不要
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: 'anonymous',   // 認証ありにするなら LIFF 絡みで置き換え
-            points: 10,
-            scanInfo: { qrText: codeText, timestamp: new Date().toISOString() }
-          })
-        });
-        const json = await res.json();
-        document.body.textContent = json.message || json.error;
-      } catch (err) {
-        document.body.textContent = '通信エラー: ' + err.message;
-      }
-    });
-  </script>
+    // ID トークンをヘッダーにセット
+    const idToken = liff.getIDToken();
+
+    // API 呼び出し
+    try {
+      const res = await fetch(window.APP_CONFIG.AZURE_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          userId: liff.getContext().userId,
+          points: 10,
+          scanInfo: { qrText: codeText, timestamp: new Date().toISOString() }
+        })
+      });
+      const json = await res.json();
+      document.body.textContent = json.message || json.error;
+    } catch (err) {
+      document.body.textContent = '通信エラー: ' + err.message;
+    }
+  });
+</script>
+
 </head>
 <body>
   <p>処理中…</p>
 </body>
 </html>
-=======
-<!-- scan.html -->
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>QRスキャン受け口</title>
-  <script src="config.js"></script>
-  <script>
-    window.addEventListener('DOMContentLoaded', async () => {
-      const params = new URLSearchParams(location.search);
-      const codeText = params.get('code');
-      if (!codeText) {
-        document.body.textContent = 'QR 情報が見つかりませんでした';
-        return;
-      }
-
-      // LIFF 初期化（任意・匿名 API 呼び出しなら不要）
-      // await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
-
-      // API エンドポイント
-      const url = window.APP_CONFIG.AZURE_FUNCTION_URL;
-      // 認証不要なら Authorization ヘッダも不要
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: 'anonymous',   // 認証ありにするなら LIFF 絡みで置き換え
-            points: 10,
-            scanInfo: { qrText: codeText, timestamp: new Date().toISOString() }
-          })
-        });
-        const json = await res.json();
-        document.body.textContent = json.message || json.error;
-      } catch (err) {
-        document.body.textContent = '通信エラー: ' + err.message;
-      }
-    });
-  </script>
-</head>
-<body>
-  <p>処理中…</p>
-</body>
-</html>
->>>>>>> 22dd0bbaa4a6c03d8ada2359f554bf5026d0118f
