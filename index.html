@@ -2,23 +2,70 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>LINE QR ポイント獲得アプリ</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <title>QR スキャン受付</title>
   <script src="config.js"></script>
-  <script src="app.js" defer></script>
   <style>
-    /* 最初は全要素非表示 */
-    body > * { display: none; }
-    /* 最終的に #qrcode のみ表示 */
-    #qrcode { margin: 0 auto; display: block; }
+    body * { display: none; }
+    #status, #result {
+      display: block;
+      text-align: center;
+      margin: 2em;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
-  <!-- これらは JS で一時的に表示してもすぐ隠されるので、
-       HTML 側ではそのままにしておいて大丈夫です -->
-  <h1 id="title">LINE QR ポイント獲得アプリ</h1>
-  <p id="status">LINE へのログイン状態を確認中…</p>
-  <div id="qrcode"></div>
+  <p id="status">QR 情報を受け付けています…</p>
+  <pre id="result"></pre>
+
+  <script>
+  (async () => {
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+
+    // URL パラメータ取得
+    const p = new URLSearchParams(location.search);
+    const code    = p.get("code");
+    const idToken = p.get("idToken");
+    const userId  = p.get("userId");
+
+    if (!code || !idToken || !userId) {
+      statusEl.textContent = "パラメータが不足しています";
+      return;
+    }
+
+    statusEl.textContent = "ポイント付与中…";
+
+    try {
+      const resp = await fetch(
+        // config.js の AZURE_FUNCTION_URL をそのまま使う
+        APP_CONFIG.AZURE_FUNCTION_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": "Bearer " + idToken
+          },
+          body: JSON.stringify({
+            userId,
+            points:    10,
+            scanInfo:  { qrText: code, timestamp: new Date().toISOString() }
+          })
+        }
+      );
+
+      if (!resp.ok) {
+        throw new Error("HTTP " + resp.status);
+      }
+
+      const json = await resp.json();
+      statusEl.textContent = "ポイントを正常に付与しました";
+      resultEl.textContent = JSON.stringify(json, null, 2);
+
+    } catch (err) {
+      statusEl.textContent = "エラーが発生しました: " + err.message;
+    }
+  })();
+  </script>
 </body>
 </html>
