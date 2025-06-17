@@ -1,45 +1,42 @@
-<!-- scan.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <title>QRスキャン受け口</title>
 
-  <!-- LIFF SDK -->
+  <!-- LIFF SDK, 設定読み込み -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- 設定 -->
   <script src="config.js"></script>
 </head>
 <body>
   <p id="status">処理中…</p>
-
   <script>
     (async () => {
-      // 1) LIFF 初期化
+      // LIFF 初期化・ログインチェック
       await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
       if (!liff.isLoggedIn()) {
         liff.login({ redirectUri: window.location.href, scope: 'profile openid' });
         return;
       }
 
-      // 2) URL パラメータ取得
-      const params  = new URLSearchParams(location.search);
-      const code    = params.get('code');
-      const idToken = params.get('idToken');
-      const userId  = params.get('userId');
+      // URL パラメータ取得
+      const p = new URLSearchParams(location.search);
+      const code    = p.get('code');
+      const idToken = p.get('idToken');
+      const userId  = p.get('userId');
 
       if (!code || !idToken || !userId) {
-        document.getElementById('status').textContent = 
+        document.getElementById('status').textContent =
           'QR 情報が不足しています';
         return;
       }
 
-      // 3) Azure Function 呼び出し
+      // Azure Function 呼び出し
       try {
         const res = await fetch(window.APP_CONFIG.AZURE_FUNCTION_URL, {
           method: 'POST',
           headers: {
-            'Content-Type':  'application/json',
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${idToken}`
           },
           body: JSON.stringify({
@@ -49,10 +46,10 @@
           })
         });
         const json = await res.json();
-        document.getElementById('status').textContent = 
+        document.getElementById('status').textContent =
           json.message || json.error;
       } catch (err) {
-        document.getElementById('status').textContent = 
+        document.getElementById('status').textContent =
           '通信エラー: ' + err.message;
       }
     })();
