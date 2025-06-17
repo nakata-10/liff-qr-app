@@ -1,66 +1,47 @@
 // app.js
+import { writeText } from 'some-qr-lib'; // 例: QRコード書き出し関数
 
-// 事前に index.html で以下を読み込んでおいてください：
-// <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-// <script src="config.js"></script>
+window.addEventListener('DOMContentLoaded', async () => {
+  await liff.init({ liffId: APP_CONFIG.LIFF_ID });
+  console.log('LIFF ready, isLoggedIn=', liff.isLoggedIn());
 
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('app.js loaded');
-  console.log('window.APP_CONFIG:', window.APP_CONFIG);
-
-  // 1. LIFF SDK 初期化
-  try {
-    await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
-    console.log('▶ liff.init done, isLoggedIn:', liff.isLoggedIn());
-  } catch (e) {
-    console.error('LIFF SDK の初期化に失敗しました:', e);
-    document.getElementById('message').textContent = 'LIFF 初期化エラー';
-    return;
-  }
-
-  // 2. ログインチェック
   if (!liff.isLoggedIn()) {
-    console.log('▶ 未ログイン → LIFF ログインへ');
-    liff.login({ redirectUri: window.location.href, scope: 'profile openid' });
+    // 未ログインならリダイレクト
+    liff.login({ redirectUri: window.location.href });
     return;
   }
 
-  // 3. ログイン済み表示 & ボタン有効化
-  document.getElementById('message').textContent = 'ログイン済みです';
+  // ——— ここで自動生成 ———
+  generateQrCode();
+
+  // （もしボタンも残すなら、有効化してあとから手動でも再生成できるように）
   const btn = document.getElementById('btn-generate');
   btn.disabled = false;
-  btn.addEventListener('click', generateQr);
+  btn.addEventListener('click', generateQrCode);
 });
 
-async function generateQr() {
+/**
+ * QRコードを描画する関数
+ */
+async function generateQrCode() {
   console.log('▶ generateQr called');
 
-  // 4. ID トークン・ユーザーID取得
+  // LIFF からパラメータを取得
   const idToken = liff.getIDToken();
   const userId  = liff.getContext().userId;
-  console.log('▶ ID Token & userId:', idToken ? '(token present)' : '(no token)', userId);
-
-  // 5. 一意のコード生成
-  const code = Date.now().toString();
-
-  // 6. スキャン用 URL を組み立て
-  const scanUrl = [
-    `${location.origin}/scan.html`,
-    `?code=${encodeURIComponent(code)}`,
-    `&idToken=${encodeURIComponent(idToken)}`,
-    `&userId=${encodeURIComponent(userId)}`
-  ].join('');
-  console.log('▶ scanUrl:', scanUrl);
-
-  // 7. QR コード表示
-  const qrContainer = document.getElementById('qrcode');
-  qrContainer.innerHTML = ''; // クリア
-  new QRCode(qrContainer, {
+  const scanUrl = `${window.APP_CONFIG.SCAN_BASE_URL
+    }/scan.html?code=${encodeURIComponent(/* 任意のコード */)}&
+      idToken=${encodeURIComponent(idToken)}&
+      userId=${encodeURIComponent(userId)}`;
+  
+  // #qrcode に描画 (ライブラリによって書き方は変わります)
+  document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), {
     text: scanUrl,
     width: 300,
     height: 300,
-    correctLevel: QRCode.CorrectLevel.H
   });
 
-  document.getElementById('qr-result').textContent = 'QRコードをスキャンしてください';
+  // ラベルなど出したい場合
+  document.getElementById('qrcode-label').style.display = 'block';
 }
