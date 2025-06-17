@@ -2,33 +2,23 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LINE QR ポイント獲得アプリ</title>
-
-  
-  <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js"></script>
-  <script defer src="app.js"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  
-
+  <script src="app.js" defer></script>
   <style>
-    body { font-family: sans-serif; padding:16px; text-align:center; }
-    button { margin:8px; padding:0.7em 1.2em; font-size:1em; }
-    #qrcode { margin:16px auto; width:200px; height:200px; }
-    #message { margin:16px 0; font-size:1.1em; color:#333; }
+    /* 最初は全要素非表示 */
+    body > * { display: none; }
+    /* 最終的に #qrcode のみ表示 */
+    #qrcode { margin: 0 auto; display: block; }
   </style>
 </head>
 <body>
-  <h1>LINE QR ポイント獲得アプリ</h1>
-  <p id="message">LINE へのログイン状態を確認中…</p>
-
-  <!-- （変更点）ボタンと同時に自動生成後に表示するラベルを用意 -->
-  <button id="btn-generate" disabled>QRコードを生成する</button>
+  <!-- これらは JS で一時的に表示してもすぐ隠されるので、
+       HTML 側ではそのままにしておいて大丈夫です -->
+  <h1 id="title">LINE QR ポイント獲得アプリ</h1>
+  <p id="status">LINE へのログイン状態を確認中…</p>
   <div id="qrcode"></div>
-  <p id="qrcode-label" style="display:none; text-align:center; margin-top:8px;">
-    QRコードを読み取ってください
-  </p>
-  <div id="qr-result"></div>
 </body>
 </html>
