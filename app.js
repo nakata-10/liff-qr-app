@@ -1,36 +1,32 @@
 // app.js
-import { writeText } from 'some-qr-lib'; // 例: QRコード書き出し関数
-
 window.addEventListener('DOMContentLoaded', async () => {
-  await liff.init({ liffId: APP_CONFIG.LIFF_ID });
+  // 1) LIFF 初期化
+  await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
   console.log('LIFF ready, isLoggedIn=', liff.isLoggedIn());
 
   if (!liff.isLoggedIn()) {
-    // 未ログインならリダイレクト
-    liff.login({ redirectUri: window.location.href });
-    return;
+    // ログインしていなければリダイレクト
+    return liff.login({ redirectUri: window.location.href });
   }
 
-  // ——— ここで自動生成 ———
+  // 2) ログイン済みなら自動で QR を生成
   generateQrCode();
-
 });
 
-/**
- * QRコードを描画する関数
- */
-async function generateQrCode() {
-  console.log('▶ generateQr called');
+function generateQrCode() {
+  console.log('▶ generateQrCode called');
 
   // LIFF からパラメータを取得
   const idToken = liff.getIDToken();
   const userId  = liff.getContext().userId;
+
+  // 適宜、APP_CONFIG.SCAN_BASE_URL を定義しておいて…
   const scanUrl = `${window.APP_CONFIG.SCAN_BASE_URL
-    }/scan.html?code=${encodeURIComponent(/* 任意のコード */)}&
-      idToken=${encodeURIComponent(idToken)}&
-      userId=${encodeURIComponent(userId)}`;
-  
-  // #qrcode に描画 (ライブラリによって書き方は変わります)
+    }/scan.html?code=${encodeURIComponent(userId + ':' + Date.now())
+    }&idToken=${encodeURIComponent(idToken)
+    }&userId=${encodeURIComponent(userId)}`;
+
+  // #qrcode に描画
   document.getElementById('qrcode').innerHTML = '';
   new QRCode(document.getElementById('qrcode'), {
     text: scanUrl,
@@ -38,6 +34,6 @@ async function generateQrCode() {
     height: 300,
   });
 
-  // ラベルなど出したい場合
+  // ラベルを表示
   document.getElementById('qrcode-label').style.display = 'block';
 }
