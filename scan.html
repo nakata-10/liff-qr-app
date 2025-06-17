@@ -2,95 +2,75 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>QR スキャン受け口（デバッグ版）</title>
+  <title>QR スキャン受付</title>
   <style>
-    body { font-family: sans-serif; padding: 1em; }
-    #status { margin-top: 2em; font-size: 1.2em; }
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      text-align: center;
+    }
+    #status {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    #qr-result p {
+      margin: 0.5rem 0;
+    }
   </style>
-
-  <!-- LIFF SDK と設定 -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="config.js"></script>
 </head>
 <body>
-  <h1>QR スキャン受け口（デバッグ）</h1>
+  <h1>QR スキャン受付</h1>
   <p id="status">処理中…</p>
+  <div id="qr-result"></div>
 
+  <script src="config.js"></script>
   <script>
-    (async () => {
-      console.log("▶ scan.html script start", location.href);
+  (async () => {
+    const qs = new URLSearchParams(location.search);
+    const code    = qs.get('code');
+    const idToken = qs.get('idToken');
+    const userId  = qs.get('userId');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('qr-result');
 
-      // 1) LIFF 初期化
-      try {
-        await liff.init({ liffId: window.APP_CONFIG.LIFF_ID });
-        console.log("▶ liff.init done, isLoggedIn:", liff.isLoggedIn());
-      } catch (e) {
-        console.error("▶ liff.init error:", e);
-        document.getElementById('status').textContent = 'LIFF 初期化に失敗しました';
-        return;
-      }
+    if (!code || !idToken || !userId) {
+      statusEl.textContent = 'パラメータが不足しています';
+      return;
+    }
 
-      // 2) ログインチェック
-      if (!liff.isLoggedIn()) {
-        console.log("▶ not logged in → redirect");
-        liff.login({ redirectUri: window.location.href, scope: 'profile openid' });
-        return;
-      }
+    statusEl.textContent = 'ポイント付与中…';
 
-      // 3) URL パラメータ取得
-      const params  = new URLSearchParams(location.search);
-      const code    = params.get('code');
-      const idToken = params.get('idToken');
-      const userId  = params.get('userId');
-      console.log("▶ URL params:", { code, idToken: !!idToken, userId });
-
-      if (!code || !idToken || !userId) {
-        console.warn("▶ Missing param → abort");
-        document.getElementById('status').textContent =
-          'QR 情報が不足しています';
-        return;
-      }
-
-      // 4) API 呼び出し準備
-      console.log("▶ About to fetch:", window.APP_CONFIG.AZURE_FUNCTION_URL);
-      document.getElementById('status').textContent = 'ポイント付与中…';
-
-      try {
-        const res = await fetch(window.APP_CONFIG.AZURE_FUNCTION_URL, {
+    try {
+      const res = await fetch(
+        window.APP_CONFIG.FUNCTION_BASE_URL, {
           method: 'POST',
           headers: {
-            'Content-Type':  'application/json',
-            'Authorization': `Bearer ${idToken}`
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + idToken
           },
           body: JSON.stringify({
             userId,
             points: 10,
             scanInfo: {
-              qrText:    code,
+              qrText: code,
               timestamp: new Date().toISOString()
             }
           })
-        });
-        console.log("▶ fetch returned, status:", res.status);
-
-        const text = await res.text();
-        console.log("▶ response text:", text);
-
-        let json = {};
-        try {
-          json = JSON.parse(text);
-        } catch (e) {
-          console.warn("▶ Failed to parse JSON:", e);
         }
+      );
 
-        document.getElementById('status').textContent =
-          json.message || json.error || text || `status=${res.status}`;
-      } catch (err) {
-        console.error("▶ fetch error:", err);
-        document.getElementById('status').textContent =
-          '通信エラー: ' + err.message;
-      }
-    })();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const json = await res.json();
+      statusEl.textContent = 'ポイントを正常に付与しました 🎉';
+      resultEl.innerHTML = `
+        <p>合計ポイント: <strong>${json.totalPoints}</strong></p>
+      `;
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = 'エラーが発生しました: ' + err.message;
+    }
+  })();
   </script>
 </body>
 </html>
