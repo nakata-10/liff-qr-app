@@ -23,9 +23,12 @@
   <h1>LINE QR ポイント獲得アプリ</h1>
   <p id="message">LINE へのログイン状態を確認中…</p>
 
-  <!-- QRコード生成のみ -->
+  <!-- （変更点）ボタンと同時に自動生成後に表示するラベルを用意 -->
   <button id="btn-generate" disabled>QRコードを生成する</button>
   <div id="qrcode"></div>
+  <p id="qrcode-label" style="display:none; text-align:center; margin-top:8px;">
+    QRコードを読み取ってください
+  </p>
   <div id="qr-result"></div>
 </body>
 </html>
