@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>クーポンスライダー</title>
+
+  <style>
+
+    .slider-container {
+
+      width: 320px;
+
+      margin: 0 auto;
+
+      overflow: hidden;
+
+      position: relative;
+
+    }
+
+    .slider-track {
+
+      display: flex;
+
+      transition: transform 0.3s;
+
+    }
+
+    .slide {
+
+      min-width: 320px;
+
+      box-sizing: border-box;
+
+      padding: 10px;
+
+      text-align: center;
+
+    }
+
+    .slide img {
+
+      width: 200px;
+
+      height: 200px;
+
+      object-fit: cover;
+
+      border-radius: 10px;
+
+    }
+
+    .slider-btn {
+
+      position: absolute;
+
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      background: #fff;
+
+      border: 1px solid #ccc;
+
+      border-radius: 50%;
+
+      width: 32px;
+
+      height: 32px;
+
+      cursor: pointer;
+
+      font-size: 18px;
+
+      z-index: 2;
+
+    }
+
+    .slider-btn.prev { left: 0; }
+
+    .slider-btn.next { right: 0; }
+
+    .info { margin-bottom: 10px; }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="info">
+
+    <span id="userName"></span> さん<br>
+
+    <span id="shopName"></span>
+
+  </div>
+
+  <div class="slider-container">
+
+    <button class="slider-btn prev" onclick="moveSlide(-1)">&#8592;</button>
+
+    <div class="slider-track" id="sliderTrack"></div>
+
+    <button class="slider-btn next" onclick="moveSlide(1)">&#8594;</button>
+
+  </div>
+
+  <script>
+
+    // 受け取るデータ例
+
+    const couponData = {
+
+      userName: "山田太郎",
+
+      shopName: "カフェ・ド・サン",
+
+      menuNames: ["パンケーキ", "パスタ", "コーヒー"],
+
+      couponQrUrls: [
+
+        "image/money_coin_america_10_reverse.png",
+
+        "image/money_coin_america_10_reverse.png",
+
+        "image/money_coin_america_10_reverse.png"
+
+      ],
+
+      menuImages: [
+
+        "image/money_coin_america_10_reverse.png",
+
+        "image/money_coin_america_10_reverse.png",
+
+        "image/money_coin_america_10_reverse.png"
+
+      ],
+
+      menuDescriptions: [
+
+        "ふわふわのパンケーキに特製シロップをかけてどうぞ。",
+
+        "本格イタリアンパスタ。クーポンでお得！",
+
+        "自家焙煎コーヒー。香り豊かです。"
+
+      ]
+    };
+
+
+
+    // 表示部分
+
+    document.getElementById('userName').textContent = couponData.userName;
+
+    document.getElementById('shopName').textContent = couponData.shopName;
+
+
+    const sliderTrack = document.getElementById('sliderTrack');
+
+    couponData.menuNames.forEach((name, i) => {
+
+      const slide = document.createElement('div');
+
+      slide.className = 'slide';
+
+      slide.innerHTML = `
+
+        <h3>${name}</h3>
+
+        <img src="${couponData.menuImages[i]}" alt="${name}">
+
+        <p>${couponData.menuDescriptions[i]}</p>
+
+        <a href="${couponData.couponQrUrls[i]}" target="_blank">
+
+          <img src="${couponData.couponQrUrls[i]}" alt="クーポンQR" width="100">
+
+        </a>
+
+        <div>クーポンQRコード</div>
+
+      `;
+
+      sliderTrack.appendChild(slide);
+
+    });
+
+
+
+    let currentIndex = 0;
+
+    function moveSlide(dir) {
+
+      const total = couponData.menuNames.length;
+
+      currentIndex += dir;
+
+      if (currentIndex < 0) currentIndex = 0;
+
+      if (currentIndex > total - 1) currentIndex = total - 1;
+
+      sliderTrack.style.transform = `translateX(${-320 * currentIndex}px)`;
+
+    }
+
+  </script>
+
+</body>
+
+</html>
+
+
+
+<!--
+
+// 例：サーバーやGASから返すJSON
+
+const couponData = {
+
+  userName: "山田太郎",
+
+  shopName: "カフェ・ド・サン",
+
+  menuNames: ["パンケーキ", "パスタ", "コーヒー"],
+
+  couponQrUrls: [
+
+    "https://example.com/qr1.png",
+
+    "https://example.com/qr2.png",
+
+    "https://example.com/qr3.png"
+
+  ],
+
+  menuImages: [
+
+    "https://example.com/pancake.jpg",
+
+    "https://example.com/pasta.jpg",
+
+    "https://example.com/coffee.jpg"
+
+  ],
+
+  menuDescriptions: [
+
+    "ふわふわのパンケーキに特製シロップをかけてどうぞ。",
+
+    "本格イタリアンパスタ。クーポンでお得！",
+
+    "自家焙煎コーヒー。香り豊かです。"
+
+  ]
+
+};
+
+// これをfetchのレスポンスやGASのdoGet/doPostで返してください
+
+-->
