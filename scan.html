@@ -17,12 +17,11 @@
 
   <script>
   (async () => {
-    // QR側の code, idToken, userId を取得
+    // URLパラメータから code, idToken, userId を取得
     const params  = new URLSearchParams(window.location.search);
-    const qrCode   = params.get('code')    || '';  
+    const qrCode   = params.get('code')    || '';
     const idToken  = params.get('idToken') || '';
     const userId   = params.get('userId')  || '';
-    const key      = window.APP_CONFIG.FUNCTION_KEY;
 
     const statusEl = document.getElementById('status');
     const resultEl = document.getElementById('qr-result');
@@ -30,17 +29,16 @@
 
     try {
       const res = await fetch(
-        window.APP_CONFIG.AZURE_FUNCTION_URL,
+        window.APP_CONFIG.AZURE_FUNCTION_URL,  // 例: https://line-func-app.azurewebsites.net/awardpoints
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            // 関数キー認証はヘッダーで
-            'x-functions-key': key
+            'Authorization': 'Bearer ' + idToken   // ← ここでLINE IDトークンをヘッダーに
           },
           body: JSON.stringify({
             userId,
-            points: 10,
+            points: 10,        // 必要なポイント数に合わせて変更
             scanInfo: {
               qrText: qrCode,
               timestamp: new Date().toISOString()
@@ -50,8 +48,9 @@
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
+
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong></p>`;
+      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong> pt</p>`;
     } catch (err) {
       console.error(err);
       statusEl.textContent = 'エラーが発生しました: ' + err.message;
