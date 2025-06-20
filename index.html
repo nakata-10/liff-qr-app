@@ -37,11 +37,25 @@
       width: 300px;
       height: 300px;
     }
+    /* 結果表示エリア */
+    #result p {
+      text-align: center;
+      font-family: sans-serif;
+      margin-top: 16px;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
-  <h1 id="title">LINE QR ポイント獲得アプリ</h1>
-  <p id="status">LINE へのログイン状態を確認中…</p>
+  <!-- 1) スキャン待ち画面 -->
+  <h1 id="title">QR ポイント獲得</h1>
+  <p id="status">QR コードをスキャンしてください…</p>
   <div id="qrcode"></div>
+
+  <!-- 2) スキャン完了後の結果画面 -->
+  <div id="result">
+    <p>ポイントを正常に付与しました 🎉</p>
+    <p>合計ポイント: <strong id="total-points">…</strong> pt</p>
+  </div>
 </body>
 </html>
