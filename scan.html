@@ -2,60 +2,77 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR スキャン受付</title>
   <style>
     body { font-family: sans-serif; padding: 2rem; text-align: center; }
     #status { font-size: 1.2rem; margin-bottom: 1.5rem; }
     #qr-result p { font-size: 1rem; margin: 0.5rem 0; }
   </style>
-  <script src="config.js"></script>
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
   <h1>QR スキャン受付</h1>
   <p id="status">読み取りデータを送信中…</p>
-  <div id="qr-result"></div>
+  <div id="qr-result">
+    <p>合計ポイント: <span id="total-points">…</span> pt</p>
+  </div>
 
   <script>
-  (async () => {
-    // URLパラメータから code, idToken, userId を取得
-    const params  = new URLSearchParams(window.location.search);
-    const qrCode   = params.get('code')    || '';
-    const idToken  = params.get('idToken') || '';
-    const userId   = params.get('userId')  || '';
+    const SCAN_FUNCTION_URL = "https://<your-function-app>.azurewebsites.net/api/awardPoints";
+    const FUNCTION_KEY      = "<your-function-key>";  // クエリ文字列で付与する key
 
-    const statusEl = document.getElementById('status');
-    const resultEl = document.getElementById('qr-result');
-    statusEl.textContent = 'ポイント付与中…';
+    async function sendScan() {
+      try {
+        const idToken = liff.getIDToken();
+        const userId  = liff.getContext().userId;
+        const qrText  = new URLSearchParams(location.search).get("code") || "";
 
-    try {
-      const res = await fetch(
-        window.APP_CONFIG.AZURE_FUNCTION_URL,  // 例: https://line-func-app.azurewebsites.net/awardpoints
-        {
-          method: 'POST',
+        const res = await fetch(`${SCAN_FUNCTION_URL}?code=${FUNCTION_KEY}`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + idToken   // ← ここでLINE IDトークンをヘッダーに
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + idToken
           },
           body: JSON.stringify({
             userId,
-            points: 10,        // 必要なポイント数に合わせて変更
+            points: 10,
             scanInfo: {
-              qrText: qrCode,
+              qrText,
               timestamp: new Date().toISOString()
             }
           })
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+        });
 
-      statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong> pt</p>`;
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = 'エラーが発生しました: ' + err.message;
+        if (!res.ok) {
+          document.getElementById("status").innerText = "ポイント付与に失敗しました…";
+          console.error("Error response", await res.text());
+          return;
+        }
+
+        const data = await res.json();
+        document.getElementById("status").innerText = "ポイントを正常に付与しました 🎉";
+        document.getElementById("total-points").innerText = data.totalPoints;
+      } catch (err) {
+        document.getElementById("status").innerText = "エラーが発生しました";
+        console.error(err);
+      }
     }
-  })();
+
+    // LIFF 初期化
+    liff.init({ liffId: APP_CONFIG.LIFF_ID })
+      .then(() => {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          sendScan();
+        }
+      })
+      .catch(err => {
+        document.getElementById("status").innerText = "LIFF 初期化エラー";
+        console.error(err);
+      });
   </script>
 </body>
 </html>
