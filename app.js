@@ -15,6 +15,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     const statusEl = document.getElementById('status');
     statusEl.textContent = 'QRコードを生成中…';
     statusEl.classList.add('visible');
+    setupRedirectListener();   // ← 追加
 
     generateQrCode();
   } catch (err) {
@@ -52,4 +53,18 @@ function generateQrCode() {
   qEl.classList.add('visible');
   const statusEl = document.getElementById('status');
   statusEl.textContent = 'この QR コードをスキャンしてください';
+}
+/**
+ * scan.html が開かれたタイミングを localStorage 経由でキャッチし、
+ * 数秒後に同じ URL（scan.html）をリダイレクトするリスナーを登録
+ */
+function setupRedirectListener() {
+  window.addEventListener('storage', e => {
+    if (e.key === 'lastScannedUrl' && e.newValue) {
+      console.log('Scan page opened elsewhere, redirecting in 5s to', e.newValue);
+      setTimeout(() => {
+        window.location.href = e.newValue;
+      }, 5000);
+    }
+  });
 }

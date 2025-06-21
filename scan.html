@@ -53,6 +53,11 @@
 
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
       resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong> pt</p>`;
+      totalEl.textContent  = json.totalPoints;
+
+      // ここで localStorage にスキャン完了 URL をセット
+      localStorage.setItem('lastScannedUrl', window.location.href);
+      
     } catch (err) {
       console.error(err);
       statusEl.textContent = 'エラーが発生しました: ' + err.message;
