@@ -2,17 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <!-- リダイレクト判定を最優先で実行 -->
-  <script>
-    (function() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('code') && params.has('idToken') && params.has('userId')) {
-        // scan.html にクエリごと飛ばす
-        window.location.replace(`scan.html?${window.location.search.substring(1)}`);
-      }
-    })();
-  </script>
-
   <!-- レスポンシブ対応 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR ポイント獲得</title>
@@ -28,13 +17,26 @@
 
   <style>
     /* 初期状態ではすべて非表示 */
-    body > * { display: none; }
+    body > * {
+      display: none;
+    }
     /* JS側で表示させたい要素に付与 */
-    .visible { display: block !important; }
+    .visible {
+      display: block !important;
+    }
     /* タイトル・ステータスのスタイル */
-    #title, #status { text-align: center; margin-bottom: 16px; font-family: sans-serif; }
+    #title,
+    #status {
+      text-align: center;
+      margin-bottom: 16px;
+      font-family: sans-serif;
+    }
     /* QRコード表示領域 */
-    #qrcode { margin: 0 auto; width: 300px; height: 300px; }
+    #qrcode {
+      margin: 0 auto;
+      width: 300px;
+      height: 300px;
+    }
   </style>
 </head>
 <body>

@@ -1,18 +1,6 @@
 // public/app.js
 
 window.addEventListener("DOMContentLoaded", async () => {
-  // ──────────────── ここから追加 ────────────────
-  // URL に code, idToken, userId が含まれていたら scan.html へリダイレクト
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('code') && params.has('idToken') && params.has('userId')) {
-    // 現在のクエリ部を丸ごと scan.html に引き継ぐ
-    window.location.replace(
-      `${APP_CONFIG.SCAN_BASE_URL}/scan.html?${window.location.search.substring(1)}`
-    );
-    return;
-  }
-  // ──────────────── ここまで追加 ────────────────
-
   try {
     // 1) LIFF 初期化
     await liff.init({ liffId: APP_CONFIG.LIFF_ID });
@@ -48,7 +36,7 @@ function generateQrCode() {
   // ↓ ここをテンプレートリテラルで組み立て
   const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
                   `?code=${encodeURIComponent(code)}` +
-                  `&idToken=${encodeURIComponent(idToken)}` +
+                  `&idToken=${encodeURIComponent(idToken)}` + //この部分をお店の名前に変更する、＋GASのデータベースからお店の名前を取得するようにする。
                   `&userId=${encodeURIComponent(userId)}`;
 
   // QR コード描画
