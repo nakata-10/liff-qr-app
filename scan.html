@@ -29,8 +29,8 @@
     statusEl.textContent = 'ポイント付与中…';
 
     try {
-      const res = await fetch(
-        `${window.APP_CONFIG.AZURE_FUNCTION_BASE_URL}/awardPoints?code=${window.APP_CONFIG.FUNCTION_KEY}`, {
+      const res = await fetch(window.APP_CONFIG.AZURE_FUNCTION_URL,  // 例: https://line-func-app.azurewebsites.net/awardpoints
+       {
           method: 'POST',
           headers: {
             'Content-Type':  'application/json',
