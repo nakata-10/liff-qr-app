@@ -3,27 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR コード表示</title>
+  <title>QR & スキャン結果</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; text-align: center; }
-    #title { font-size: 1.5rem; opacity: 0; transition: opacity .3s; }
-    #title.visible { opacity: 1; }
-    #status { font-size: 1.2rem; margin: 1rem 0; opacity: 0; transition: opacity .3s; }
-    #status.visible { opacity: 1; }
-    #qrcode { margin-top: 2rem; opacity: 0; transition: opacity .3s; }
-    #qrcode.visible { opacity: 1; }
+    body { text-align: center; font-family: sans-serif; padding: 2rem; }
+    .view { display: none; }
+    .view.active { display: block; }
+    #qrcode { margin-top: 2rem; }
   </style>
-  <!-- LIFF SDK と QRCode.js は index.html で読み込み -->
+  <!-- LIFF SDK と QRCode.js -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js"></script>
 </head>
 <body>
-  <h1 id="title">QR コードをスキャンしてください</h1>
-  <p id="status">QRコードを生成中…</p>
-  <div id="qrcode"></div>
+  <!-- QR 表示ビュー -->
+  <div id="view-qr" class="view active">
+    <h1 id="qr-title">QR コードをスキャンしてください</h1>
+    <div id="qrcode"></div>
+  </div>
 
-  <!-- アプリ本体のロジック -->
-  <script src="app.js"></script>
+  <!-- スキャン結果ビュー -->
+  <div id="view-result" class="view">
+    <h1>QR スキャン受付</h1>
+    <p id="status">読み取りデータを送信中…</p>
+    <p>合計ポイント: <span id="total-points">…</span> pt</p>
+  </div>
+
+  <!-- ロジックはすべてここでインクルード -->
+  <script src="public/app.js"></script>
 </body>
 </html>
