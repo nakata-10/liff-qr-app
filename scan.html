@@ -20,29 +20,30 @@
   <script>
   (async () => {
     // URLパラメータから code, idToken, userId を取得
-    const params  = new URLSearchParams(window.location.search);
-    const qrCode   = params.get('code')    || '';
-    const idToken  = params.get('idToken') || '';
-    const userId   = params.get('userId')  || '';
+    const params    = new URLSearchParams(window.location.search);
+    const qrCode    = params.get('code')    || '';
+    const idToken   = params.get('idToken') || '';
+    const userId    = params.get('userId')  || '';
 
-    const statusEl = document.getElementById('status');
-    const resultEl = document.getElementById('qr-result');
+    const statusEl  = document.getElementById('status');
+    const totalEl   = document.getElementById('total-points');
+
     statusEl.textContent = 'ポイント付与中…';
 
     try {
       const res = await fetch(
-        window.APP_CONFIG.AZURE_FUNCTION_URL,  // 例: https://line-func-app.azurewebsites.net/awardpoints
+        `${window.APP_CONFIG.AZURE_FUNCTION_URL}?code=${window.APP_CONFIG.FUNCTION_KEY}`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + idToken   // ← ここでLINE IDトークンをヘッダーに
+            'Content-Type':  'application/json',
+            'Authorization': 'Bearer ' + idToken
           },
           body: JSON.stringify({
             userId,
-            points: 10,        // 必要なポイント数に合わせて変更
+            points:   10,
             scanInfo: {
-              qrText: qrCode,
+              qrText:    qrCode,
               timestamp: new Date().toISOString()
             }
           })
@@ -51,11 +52,11 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
 
+      // 結果表示
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong> pt</p>`;
-      totalEl.textContent  = json.totalPoints;
+      totalEl.textContent  = json.totalPoints;  
 
-      // ここで localStorage にスキャン完了 URL をセット
+      // ローカルストレージ通知
       localStorage.setItem('lastScannedUrl', window.location.href);
       
     } catch (err) {
