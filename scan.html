@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR スキャン受付</title>
   <style>
     body { font-family: sans-serif; padding: 2rem; text-align: center; }
@@ -19,18 +20,20 @@
 
   <script>
   (async () => {
-    const params    = new URLSearchParams(window.location.search);
-    const qrCode    = params.get('code')    || '';
-    const idToken   = params.get('idToken') || '';
-    const userId    = params.get('userId')  || '';
-    const statusEl  = document.getElementById('status');
-    const totalEl   = document.getElementById('total-points');
+    // URLパラメータ取得
+    const params   = new URLSearchParams(window.location.search);
+    const qrCode   = params.get('code')    || '';
+    const idToken  = params.get('idToken') || '';
+    const userId   = params.get('userId')  || '';
 
+    const statusEl = document.getElementById('status');
+    const totalEl  = document.getElementById('total-points');
     statusEl.textContent = 'ポイント付与中…';
 
     try {
+      // ポイント付与 API 呼び出し
       const res = await fetch(
-        `${window.APP_CONFIG.AZURE_FUNCTION_URL}?code=${window.APP_CONFIG.FUNCTION_KEY}`,
+        `${APP_CONFIG.AZURE_FUNCTION_URL}?code=${APP_CONFIG.FUNCTION_KEY}`,
         {
           method: 'POST',
           headers: {
@@ -51,15 +54,14 @@
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
       totalEl.textContent  = json.totalPoints;
 
-      // 5秒後に index.html（QR表示ページ）に戻す
-      setTimeout(() => {
-        window.location.href = `${window.APP_CONFIG.BASE_URL}/index.html`;
-      }, 5000);
+      // BroadcastChannel で QR側に通知
+      const bc = new BroadcastChannel("scan-channel");
+      bc.postMessage({ url: window.location.href });
 
+      // （必要ならこのタブを自動的に閉じるなども可能）
     } catch (err) {
       console.error(err);
       statusEl.textContent = 'エラーが発生しました: ' + err.message;
-      // エラー時も同様に戻すならここに setTimeout を入れてもOK
     }
   })();
   </script>
