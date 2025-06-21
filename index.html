@@ -2,46 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <!-- レスポンシブ対応 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR ポイント獲得</title>
-
-  <!-- LIFF SDK -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LINE QR ポイント獲得アプリ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- アプリ設定 -->
   <script src="config.js"></script>
-  <!-- アプリ本体ロジック -->
   <script src="app.js" defer></script>
-
   <style>
-    /* 初期状態ではすべて非表示 */
-    body > * {
-      display: none;
-    }
-    /* JS側で表示させたい要素に付与 */
-    .visible {
-      display: block !important;
-    }
-    /* タイトル・ステータスのスタイル */
-    #title,
-    #status {
-      text-align: center;
-      margin-bottom: 16px;
-      font-family: sans-serif;
-    }
-    /* QRコード表示領域 */
-    #qrcode {
-      margin: 0 auto;
-      width: 300px;
-      height: 300px;
-    }
+    body { font-family: sans-serif; padding:1rem; text-align:center; }
+    #result { display:none; margin-top:2rem; }
   </style>
 </head>
 <body>
-  <h1 id="title">LINE QR ポイント獲得アプリ</h1>
-  <p id="status">LINE へのログイン状態を確認中…</p>
+  <h1>LINE QR ポイント獲得アプリ</h1>
+  <p id="status">QRを読み取り待ち…</p>
   <div id="qrcode"></div>
+
+  <div id="result">
+    <h2>ポイント付与完了 🎉</h2>
+    <p>合計ポイント: <span id="pts">--</span> pt</p>
+  </div>
 </body>
 </html>
