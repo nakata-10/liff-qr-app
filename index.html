@@ -2,34 +2,46 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR & スキャン結果</title>
-  <style>
-    body { text-align: center; font-family: sans-serif; padding: 2rem; }
-    .view { display: none; }
-    .view.active { display: block; }
-    #qrcode { margin-top: 2rem; }
-  </style>
-  <!-- LIFF SDK と QRCode.js -->
+  <!-- レスポンシブ対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR ポイント獲得</title>
+
+  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- アプリ設定 -->
   <script src="config.js"></script>
+  <!-- アプリ本体ロジック -->
+  <script src="app.js" defer></script>
+
+  <style>
+    /* 初期状態ではすべて非表示 */
+    body > * {
+      display: none;
+    }
+    /* JS側で表示させたい要素に付与 */
+    .visible {
+      display: block !important;
+    }
+    /* タイトル・ステータスのスタイル */
+    #title,
+    #status {
+      text-align: center;
+      margin-bottom: 16px;
+      font-family: sans-serif;
+    }
+    /* QRコード表示領域 */
+    #qrcode {
+      margin: 0 auto;
+      width: 300px;
+      height: 300px;
+    }
+  </style>
 </head>
 <body>
-  <!-- QR 表示ビュー -->
-  <div id="view-qr" class="view active">
-    <h1 id="qr-title">QR コードをスキャンしてください</h1>
-    <div id="qrcode"></div>
-  </div>
-
-  <!-- スキャン結果ビュー -->
-  <div id="view-result" class="view">
-    <h1>QR スキャン受付</h1>
-    <p id="status">読み取りデータを送信中…</p>
-    <p>合計ポイント: <span id="total-points">…</span> pt</p>
-  </div>
-
-  <!-- ロジックはすべてここでインクルード -->
-  <script src="public/app.js"></script>
+  <h1 id="title">LINE QR ポイント獲得アプリ</h1>
+  <p id="status">LINE へのログイン状態を確認中…</p>
+  <div id="qrcode"></div>
 </body>
 </html>

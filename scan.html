@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR スキャン受付</title>
   <style>
     body { font-family: sans-serif; padding: 2rem; text-align: center; }
@@ -20,45 +19,40 @@
 
   <script>
   (async () => {
-    // URLパラメータ取得
-    const params   = new URLSearchParams(window.location.search);
+    // URLパラメータから code, idToken, userId を取得
+    const params  = new URLSearchParams(window.location.search);
     const qrCode   = params.get('code')    || '';
     const idToken  = params.get('idToken') || '';
     const userId   = params.get('userId')  || '';
 
     const statusEl = document.getElementById('status');
-    const totalEl  = document.getElementById('total-points');
+    const resultEl = document.getElementById('qr-result');
     statusEl.textContent = 'ポイント付与中…';
 
     try {
-      // ポイント付与 API 呼び出し
       const res = await fetch(
-        `${APP_CONFIG.AZURE_FUNCTION_URL}?code=${APP_CONFIG.FUNCTION_KEY}`,
+        window.APP_CONFIG.AZURE_FUNCTION_URL,  // 例: https://line-func-app.azurewebsites.net/awardpoints
         {
           method: 'POST',
           headers: {
-            'Content-Type':  'application/json',
-            'Authorization': 'Bearer ' + idToken
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + idToken   // ← ここでLINE IDトークンをヘッダーに
           },
           body: JSON.stringify({
             userId,
-            points:   10,
-            scanInfo: { qrText: qrCode, timestamp: new Date().toISOString() }
+            points: 10,        // 必要なポイント数に合わせて変更
+            scanInfo: {
+              qrText: qrCode,
+              timestamp: new Date().toISOString()
+            }
           })
         }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
 
-      // 成功表示
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      totalEl.textContent  = json.totalPoints;
-
-      // BroadcastChannel で QR側に通知
-      const bc = new BroadcastChannel("scan-channel");
-      bc.postMessage({ url: window.location.href });
-
-      // （必要ならこのタブを自動的に閉じるなども可能）
+      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong> pt</p>`;
     } catch (err) {
       console.error(err);
       statusEl.textContent = 'エラーが発生しました: ' + err.message;
