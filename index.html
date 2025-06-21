@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <!-- レスポンシブ対応 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR ポイント獲得</title>
 
@@ -16,32 +15,31 @@
   <script src="app.js" defer></script>
 
   <style>
-    /* 初期状態ではすべて非表示 */
-    body > * {
-      display: none;
-    }
-    /* JS側で表示させたい要素に付与 */
-    .visible {
-      display: block !important;
-    }
-    /* タイトル・ステータスのスタイル */
-    #title,
-    #status {
+    body > * { display: none; }
+    .visible { display: block !important; }
+
+    #title, #status, #qrcode, #scan-result {
       text-align: center;
       margin-bottom: 16px;
       font-family: sans-serif;
     }
-    /* QRコード表示領域 */
-    #qrcode {
-      margin: 0 auto;
-      width: 300px;
-      height: 300px;
-    }
+    #qrcode { width: 300px; height: 300px; margin: 0 auto; }
+
+    /* スキャン結果表示 */
+    #scan-result h2 { font-size: 1.4rem; margin-bottom: 8px; }
+    #scan-result p { font-size: 1.2rem; }
   </style>
 </head>
 <body>
   <h1 id="title">LINE QR ポイント獲得アプリ</h1>
   <p id="status">LINE へのログイン状態を確認中…</p>
   <div id="qrcode"></div>
+
+  <!-- スキャン結果を自動で表示する領域 -->
+  <div id="scan-result">
+    <h2>最新スキャン：</h2>
+    <p id="scan-message">まだスキャンされていません</p>
+    <p>合計ポイント: <strong id="scan-points">0</strong> pt</p>
+  </div>
 </body>
 </html>
