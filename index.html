@@ -2,8 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LINE QR ポイント獲得アプリ</title>
+  <!-- レスポンシブ対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR ポイント獲得</title>
 
   <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -15,94 +16,32 @@
   <script src="app.js" defer></script>
 
   <style>
-    body > * { display: none; }
-    .visible { display: block !important; }
-
-    #title, #status, #qrcode, #scan-result {
+    /* 初期状態ではすべて非表示 */
+    body > * {
+      display: none;
+    }
+    /* JS側で表示させたい要素に付与 */
+    .visible {
+      display: block !important;
+    }
+    /* タイトル・ステータスのスタイル */
+    #title,
+    #status {
       text-align: center;
       margin-bottom: 16px;
       font-family: sans-serif;
     }
-    #qrcode { width: 300px; height: 300px; margin: 0 auto; }
-
-    /* スキャン結果表示 */
-    #scan-result h2 { font-size: 1.4rem; margin-bottom: 8px; }
-    #scan-result p { font-size: 1.2rem; }
+    /* QRコード表示領域 */
+    #qrcode {
+      margin: 0 auto;
+      width: 300px;
+      height: 300px;
+    }
   </style>
 </head>
 <body>
   <h1 id="title">LINE QR ポイント獲得アプリ</h1>
   <p id="status">LINE へのログイン状態を確認中…</p>
   <div id="qrcode"></div>
-
-  <div id="scan-result">
-    <h2>最新スキャン：</h2>
-    <p id="scan-message">まだスキャンされていません</p>
-    <p>合計ポイント: <strong id="scan-points">0</strong> pt</p>
-  </div>
-
-  <script>
-  (async () => {
-    // LIFF 初期化
-    await liff.init({ liffId: APP_CONFIG.LIFF_ID });
-    document.getElementById('title').classList.add('visible');
-    const statusEl = document.getElementById('status');
-    statusEl.classList.add('visible');
-
-    if (!liff.isLoggedIn()) {
-      statusEl.textContent = 'ログイン中…';
-      return liff.login({ redirectUri: location.href });
-    }
-    statusEl.textContent = 'QRコードを生成中…';
-
-    // ユーザー情報取得
-    const userId  = liff.getContext().userId;
-    const idToken = liff.getIDToken();
-
-    // QRコード生成（例：userId を埋め込んでいます）
-    const qrcodeEl = document.getElementById('qrcode');
-    qrcodeEl.classList.add('visible');
-    new QRCode(qrcodeEl, {
-      text: `${location.origin}/scan.html?code=${userId}&idToken=${encodeURIComponent(idToken)}&userId=${userId}`,
-      width: 300, height: 300
-    });
-    statusEl.textContent = 'スマホのカメラでこのQRをスキャンしてください';
-
-    // ポーリング用 URL
-    const pollUrl = `${APP_CONFIG.AZURE_BASE_URL}/getTotalPoints?code=${APP_CONFIG.FUNC_KEY}&userId=${userId}`;
-
-    // 初期ポイントを取得しておく
-    let lastPoints = 0;
-    try {
-      const r0 = await fetch(pollUrl, {
-        headers: { 'Authorization': 'Bearer ' + idToken }
-      });
-      lastPoints = (await r0.json()).totalPoints;
-    } catch (e) {
-      console.warn('初期ポイント取得失敗', e);
-    }
-
-    // ポーリング開始（3秒ごとにチェック）
-    setInterval(async () => {
-      try {
-        const res = await fetch(pollUrl, {
-          headers: { 'Authorization': 'Bearer ' + idToken }
-        });
-        if (!res.ok) throw 'HTTP ' + res.status;
-        const { totalPoints } = await res.json();
-        // ポイント増加を検知したら遷移
-        if (totalPoints > lastPoints) {
-          const scanUrl = `${location.origin}/scan.html?code=${userId}` +
-                          `&idToken=${encodeURIComponent(idToken)}` +
-                          `&userId=${userId}`;
-          location.href = scanUrl;
-        }
-      } catch (err) {
-        console.error('ポーリングエラー', err);
-      }
-    }, 3000);
-
-  })();
-  </script>
 </body>
 </html>
