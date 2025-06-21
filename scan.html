@@ -19,12 +19,10 @@
 
   <script>
   (async () => {
-    // URLパラメータから code, idToken, userId を取得
     const params    = new URLSearchParams(window.location.search);
     const qrCode    = params.get('code')    || '';
     const idToken   = params.get('idToken') || '';
     const userId    = params.get('userId')  || '';
-
     const statusEl  = document.getElementById('status');
     const totalEl   = document.getElementById('total-points');
 
@@ -42,26 +40,26 @@
           body: JSON.stringify({
             userId,
             points:   10,
-            scanInfo: {
-              qrText:    qrCode,
-              timestamp: new Date().toISOString()
-            }
+            scanInfo: { qrText: qrCode, timestamp: new Date().toISOString() }
           })
         }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
 
-      // 結果表示
+      // 成功表示
       statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      totalEl.textContent  = json.totalPoints;  
+      totalEl.textContent  = json.totalPoints;
 
-      // ローカルストレージ通知
-      localStorage.setItem('lastScannedUrl', window.location.href);
-      
+      // 5秒後に index.html（QR表示ページ）に戻す
+      setTimeout(() => {
+        window.location.href = `${window.APP_CONFIG.BASE_URL}/index.html`;
+      }, 5000);
+
     } catch (err) {
       console.error(err);
       statusEl.textContent = 'エラーが発生しました: ' + err.message;
+      // エラー時も同様に戻すならここに setTimeout を入れてもOK
     }
   })();
   </script>
