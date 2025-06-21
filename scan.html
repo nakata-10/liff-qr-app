@@ -21,8 +21,9 @@
   <script>
   (async () => {
     const params    = new URLSearchParams(window.location.search);
-    const sessionId = params.get('sessionId') || '';
-    const idToken   = params.get('idToken')   || '';
+    const qrCode   = params.get('code')    || '';
+    const idToken  = params.get('idToken') || '';
+    const userId   = params.get('userId')  || '';
 
     const statusEl = document.getElementById('status');
     const totalEl  = document.getElementById('total-points');
