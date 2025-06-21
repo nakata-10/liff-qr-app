@@ -2,46 +2,28 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <!-- レスポンシブ対応 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR ポイント獲得</title>
-
-  <!-- LIFF SDK -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- QRCode.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- アプリ設定 -->
-  <script src="config.js"></script>
-  <!-- アプリ本体ロジック -->
-  <script src="app.js" defer></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR コード表示</title>
   <style>
-    /* 初期状態ではすべて非表示 */
-    body > * {
-      display: none;
-    }
-    /* JS側で表示させたい要素に付与 */
-    .visible {
-      display: block !important;
-    }
-    /* タイトル・ステータスのスタイル */
-    #title,
-    #status {
-      text-align: center;
-      margin-bottom: 16px;
-      font-family: sans-serif;
-    }
-    /* QRコード表示領域 */
-    #qrcode {
-      margin: 0 auto;
-      width: 300px;
-      height: 300px;
-    }
+    body { font-family: sans-serif; padding: 2rem; text-align: center; }
+    #title { font-size: 1.5rem; opacity: 0; transition: opacity .3s; }
+    #title.visible { opacity: 1; }
+    #status { font-size: 1.2rem; margin: 1rem 0; opacity: 0; transition: opacity .3s; }
+    #status.visible { opacity: 1; }
+    #qrcode { margin-top: 2rem; opacity: 0; transition: opacity .3s; }
+    #qrcode.visible { opacity: 1; }
   </style>
+  <!-- LIFF SDK と QRCode.js は index.html で読み込み -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="config.js"></script>
 </head>
 <body>
-  <h1 id="title">LINE QR ポイント獲得アプリ</h1>
-  <p id="status">LINE へのログイン状態を確認中…</p>
+  <h1 id="title">QR コードをスキャンしてください</h1>
+  <p id="status">QRコードを生成中…</p>
   <div id="qrcode"></div>
+
+  <!-- アプリ本体のロジック -->
+  <script src="app.js"></script>
 </body>
 </html>
