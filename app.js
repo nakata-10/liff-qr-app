@@ -3,9 +3,7 @@
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await liff.init({ liffId: APP_CONFIG.LIFF_ID });
-    if (!liff.isLoggedIn()) {
-      return liff.login({ redirectUri: location.href });
-    }
+    if (!liff.isLoggedIn()) return liff.login({ redirectUri: location.href });
 
     const userId  = liff.getContext().userId;
     const idToken = liff.getIDToken();
@@ -19,7 +17,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     new QRCode(qEl, { text: scanUrl, width:300, height:300 });
     qEl.style.display = "block";
 
-    // ポイント取得開始
     startPointPolling(userId);
   } catch (err) {
     console.error(err);
@@ -30,7 +27,6 @@ let pollIntervalId = null;
 function startPointPolling(userId) {
   const pointEl   = document.getElementById("pointDisplay");
   const resultUrl = `${APP_CONFIG.SCAN_RESULT_URL}?code=${encodeURIComponent(userId)}`;
-  let reloaded = false;  // 一度だけリロードフラグ
 
   async function fetchPoints() {
     try {
@@ -40,19 +36,19 @@ function startPointPolling(userId) {
 
       if (!data.scanned) return;
 
-      // ポイント表示
+      // 累計ポイント表示
       pointEl.textContent = `現在のポイント：${data.totalPoints} pt`;
       pointEl.style.display = "block";
 
       // ポーリング停止
       clearInterval(pollIntervalId);
 
-      // 一度だけ、強制リロード
-      if (!reloaded) {
-        reloaded = true;
-        // location.reload(true) は非標準なので以下のように強制的に再読み込み
+      // まだリロードしていなければ一度だけ強制リロード
+      if (!sessionStorage.getItem("hasReloaded")) {
+        sessionStorage.setItem("hasReloaded", "true");
         setTimeout(() => {
-          window.location.href = window.location.href + "?_=" + Date.now();
+          // キャッシュを回避して強制リロード
+          window.location.href = window.location.href.split("?")[0] + "?_=" + Date.now();
         }, 1000);
       }
     } catch (err) {
