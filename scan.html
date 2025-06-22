@@ -4,40 +4,43 @@
   <meta charset="UTF-8" />
   <title>QR スキャン受付</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; text-align: center; }
-    #status { font-size: 1.2rem; margin-bottom: 1.5rem; }
-    #qr-result p { font-size: 1rem; margin: 0.5rem 0; }
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-top: 2rem;
+    }
   </style>
   <script src="config.js"></script>
 </head>
 <body>
+  <!-- ヘッダーだけを表示 -->
   <h1>QR スキャン受付</h1>
-  </div>
 
+  <!-- スクリプトはそのまま残しておけばバックグラウンドで動きますが、
+       画面上の表示はヘッダーのみになります -->
   <script>
   (async () => {
-    // URLパラメータから code, idToken, userId を取得
     const params  = new URLSearchParams(window.location.search);
     const qrCode   = params.get('code')    || '';
     const idToken  = params.get('idToken') || '';
     const userId   = params.get('userId')  || '';
 
-    const statusEl = document.getElementById('status');
-    const resultEl = document.getElementById('qr-result');
-    statusEl.textContent = 'ポイント付与中…';
-
     try {
-      const res = await fetch(
-        window.APP_CONFIG.AZURE_FUNCTION_URL,  // 例: https://line-func-app.azurewebsites.net/awardpoints
+      await fetch(
+        window.APP_CONFIG.AZURE_FUNCTION_URL,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + idToken   // ← ここでLINE IDトークンをヘッダーに
+            'Authorization': 'Bearer ' + idToken
           },
           body: JSON.stringify({
             userId,
-            points: 10,        // 必要なポイント数に合わせて変更
+            points: 10,
             scanInfo: {
               qrText: qrCode,
               timestamp: new Date().toISOString()
@@ -45,14 +48,9 @@
           })
         }
       );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-
-      statusEl.textContent = 'ポイントを正常に付与しました 🎉';
-      resultEl.innerHTML = `<p>合計ポイント: <strong>${json.totalPoints}</strong> pt</p>`;
     } catch (err) {
+      // エラー時も画面表示は変えないので何もしません
       console.error(err);
-      statusEl.textContent = 'エラーが発生しました: ' + err.message;
     }
   })();
   </script>
