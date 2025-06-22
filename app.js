@@ -78,12 +78,12 @@ function startPointPolling(userId, idToken) {
         method:  "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`
+          "Authorization": "Bearer " + idToken 
         },
         body: JSON.stringify({
-          userId:  userId,
-          code:    userId,    // Azure Function が req.body.code を期待する場合
-          idToken: idToken    // 必要に応じて
+          code,
+          idToken,    // Azure Function が req.body.code を期待する場合
+          userId    // 必要に応じて
         })
       });
 
