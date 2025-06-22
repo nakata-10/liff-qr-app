@@ -83,6 +83,7 @@ function startPointPolling(userId, idToken) {
           userId:  userId,
           points: 10,
           scanInfo: {
+            qrText:    userId,
             timestamp: new Date().toISOString()
           }
         })
