@@ -11,34 +11,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- 設定 -->
   <script src="config.js"></script>
-  <!-- アプリ本体 -->
+  <!-- 本体 -->
   <script src="app.js" defer></script>
 
   <style>
     body { font-family: sans-serif; text-align: center; padding: 2rem; }
     h1 { margin-bottom: .5rem; }
     p#sub { margin-top: 0; }
-
-    /* QRコード */
-    #qrcode {
-      margin: 1rem auto;
-      width: 300px;
-      height: 300px;
-    }
-
-    /* ポイント表示 */
-    #pointDisplay {
-      font-size: 2rem;
-      font-weight: bold;
-      margin-top: 1rem;
-      display: none;
-    }
+    #qrcode { margin: 1rem auto; width:300px; height:300px; }
+    #pointDisplay { font-size:2rem; font-weight:bold; margin-top:1rem; display:none; }
   </style>
 </head>
 <body>
   <h1>QRポイント獲得アプリ</h1>
   <p id="sub">このQRをスキャンしてください</p>
-
   <div id="qrcode"></div>
   <div id="pointDisplay">現在のポイント：-- pt</div>
 </body>
