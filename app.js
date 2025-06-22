@@ -107,5 +107,5 @@ function startPointPolling(userId, idToken) {
     } catch (err) {
       console.error(err);
     }
-  }, 5000);
+  }, 3000);
 }
