@@ -1,5 +1,3 @@
-// public/app.js
-
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     // 1) LIFF 初期化
@@ -23,7 +21,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     new QRCode(qEl, { text: scanUrl, width: 300, height: 300 });
     qEl.style.display = "block";
 
-    // 5) ポイント表示をポーリング開始
+    // 5) ポイント表示ポーリング開始
     startPointPolling(userId);
 
   } catch (err) {
@@ -49,8 +47,13 @@ function startPointPolling(userId) {
       pointEl.textContent = `現在のポイント：${data.totalPoints} pt`;
       pointEl.style.display = "block";
 
-      // 一度出したらポーリングを停止
+      // ポーリング停止
       clearInterval(pollIntervalId);
+
+      // 1秒後にページ全体をリロード
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
 
     } catch (err) {
       console.error("ポイント取得エラー", err);
@@ -61,4 +64,3 @@ function startPointPolling(userId) {
   fetchPoints();
   pollIntervalId = setInterval(fetchPoints, 3000);
 }
-
