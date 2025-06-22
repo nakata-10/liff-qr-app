@@ -77,7 +77,7 @@ function startPointPolling(userId, idToken) {
         data = await res.json();
 
         // 「今回付与」を表示
-        awardEl.textContent = `今回付与：${AWARD_POINTS} pt`;
+        awardEl.textContent = `今回の付与ポイント：${AWARD_POINTS} pt`;
         awardEl.classList.add('visible');
 
         awarded = true;
