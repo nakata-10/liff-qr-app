@@ -1,14 +1,30 @@
 // public/app.js
 
 window.addEventListener("DOMContentLoaded", async () => {
-  await liff.init({ liffId: APP_CONFIG.LIFF_ID });
-  if (!liff.isLoggedIn()) return liff.login({ redirectUri: location.href });
+  try {
+    await liff.init({ liffId: APP_CONFIG.LIFF_ID });
 
-  const idToken = liff.getIDToken();
-  const userId  = liff.getContext().userId || "";
+    if (!liff.isLoggedIn()) {
+      return liff.login({ redirectUri: location.href });
+    }
 
-  generateQrCode(userId, idToken);
-  startPointPolling(userId, idToken);
+    // 要素を取得＆表示
+    document.getElementById('title').classList.add('visible');
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = 'QRコードを生成中…';
+    statusEl.classList.add('visible');
+
+    const userId  = liff.getContext().userId;
+    const idToken = liff.getIDToken();
+
+    generateQrCode(userId, idToken);
+    startPointPolling(userId, idToken);
+  } catch (err) {
+    console.error(err);
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = 'エラーが発生しました';
+    statusEl.classList.add('visible');
+  }
 });
 
 function generateQrCode(userId, idToken) {
@@ -18,16 +34,21 @@ function generateQrCode(userId, idToken) {
   const qEl = document.getElementById('qrcode');
   qEl.innerHTML = '';
   new QRCode(qEl, { text: scanUrl, width:300, height:300 });
+  qEl.classList.add('visible');
+
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = 'この QRコードをスキャンしてください';
 }
 
-// ポーリング＆ポイント付与
+// ポーリング＆ポイント制御
 let pollIntervalId = null;
 function startPointPolling(userId, idToken) {
-  const pointEl     = document.getElementById("pointDisplay");
-  const awardEl     = document.getElementById("lastAward");
-  const awardUrl    = APP_CONFIG.AZURE_FUNCTION_URL;
-  const resultUrl   = APP_CONFIG.SCAN_RESULT_URL + `?code=${encodeURIComponent(userId)}`;
-  const awardAmount = 10;  // 付与ポイント数
+  const awardEl   = document.getElementById("lastAward");
+  const pointEl   = document.getElementById("pointDisplay");
+  const awardUrl  = APP_CONFIG.AZURE_FUNCTION_URL;    // POST 用
+  const resultUrl = APP_CONFIG.SCAN_RESULT_URL;       // GET 用
+
+  const AWARD_POINTS = 150;  // 付与ポイント数
 
   let awarded = false;
 
@@ -36,48 +57,55 @@ function startPointPolling(userId, idToken) {
       let data;
 
       if (!awarded) {
-        // --- 初回：POST でポイントを付与 ---
+        // ===== 初回：ポイント付与 =====
         const res = await fetch(awardUrl, {
-          method: "POST",
+          method:  "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":  "application/json",
             "Authorization": `Bearer ${idToken}`
           },
           body: JSON.stringify({
             userId,
-            idToken,
-            points: awardAmount,
+            points:  AWARD_POINTS,
             scanInfo: {
               qrText:    userId,
               timestamp: new Date().toISOString()
             }
           })
         });
-        if (!res.ok) throw new Error(`awardPoints HTTP ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         data = await res.json();
-        awarded = true;
 
         // 「今回付与」を表示
-        awardEl.textContent = `今回付与：${awardAmount} pt`;
-        awardEl.style.display = "block";
+        awardEl.textContent = `今回付与：${AWARD_POINTS} pt`;
+        awardEl.classList.add('visible');
+
+        awarded = true;
+
       } else {
-        // --- 2回目以降：GET で累計ポイントを取得 ---
-        const res = await fetch(resultUrl, { method: "GET" });
-        if (!res.ok) throw new Error(`getScanResult HTTP ${res.status}`);
+        // ===== 2回目以降：累計取得 =====
+        const url = `${resultUrl}?code=${encodeURIComponent(userId)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         data = await res.json();
+
+        if (!data.scanned) {
+          pointEl.textContent = "まだスキャンされていません";
+          pointEl.classList.add('visible');
+          return;
+        }
       }
 
-      // 累計ポイントを表示
+      // ===== ポイント表示 =====
       const total = data.totalPoints ?? data.points;
       pointEl.textContent = `現在のポイント：${total} pt`;
-      pointEl.style.display = "block";
+      pointEl.classList.add('visible');
 
-      // （必要ならポーリング停止）
+      // （必要なら一度だけ更新して止める）
       // clearInterval(pollIntervalId);
 
     } catch (err) {
-      console.error("ポイント取得エラー", err);
-      // エラー時は非表示のままにしてもOK
+      console.error(err);
     }
   }, 5000);
 }
