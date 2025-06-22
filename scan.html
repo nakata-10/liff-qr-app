@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR スキャン受付</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>QRスキャン受付</title>
   <script src="config.js"></script>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 2rem; }
+    h1 { margin-bottom: .5rem; }
   </style>
 </head>
 <body>
-  <h1>QR スキャン受付</h1>
+  <h1>QRスキャン受付</h1>
   <p id="msg">ポイントを付与中…</p>
 
   <script>
@@ -19,25 +20,23 @@
       const code   = params.get("code");
       const msgEl  = document.getElementById("msg");
       if (!code) {
-        msgEl.textContent = "コードがありません";
+        msgEl.textContent = "不正なアクセスです";
         return;
       }
+
       try {
-        const res = await fetch(
-          APP_CONFIG.AZURE_FUNCTION_URL,
-          {
-            method: "POST",
-            headers: { "Content-Type":"application/json" },
-            body: JSON.stringify({
-              userId: code,
-              points: 150,
-              scanInfo: {
-                qrText:    code,
-                timestamp: new Date().toISOString()
-              }
-            })
-          }
-        );
+        const res = await fetch(APP_CONFIG.AZURE_FUNCTION_URL, {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({
+            userId: code,
+            points: 150,
+            scanInfo: {
+              qrText:    code,
+              timestamp: new Date().toISOString()
+            }
+          })
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         msgEl.textContent = "ポイントを付与しました！";
       } catch (err) {
