@@ -2,57 +2,49 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR スキャン受付</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-top: 2rem;
-    }
-  </style>
   <script src="config.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2rem; }
+  </style>
 </head>
 <body>
-  <!-- ヘッダーだけを表示 -->
   <h1>QR スキャン受付</h1>
+  <p id="msg">ポイントを付与中…</p>
 
-  <!-- スクリプトはそのまま残しておけばバックグラウンドで動きますが、
-       画面上の表示はヘッダーのみになります -->
   <script>
-  (async () => {
-    const params  = new URLSearchParams(window.location.search);
-    const qrCode   = params.get('code')    || '';
-    const idToken  = params.get('idToken') || '';
-    const userId   = params.get('userId')  || '';
-
-    try {
-      await fetch(
-        window.APP_CONFIG.AZURE_FUNCTION_URL,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + idToken
-          },
-          body: JSON.stringify({
-            userId,
-            points: 150,
-            scanInfo: {
-              qrText: qrCode,
-              timestamp: new Date().toISOString()
-            }
-          })
-        }
-      );
-    } catch (err) {
-      // エラー時も画面表示は変えないので何もしません
-      console.error(err);
-    }
-  })();
+    (async () => {
+      const params = new URLSearchParams(location.search);
+      const code   = params.get("code");
+      const msgEl  = document.getElementById("msg");
+      if (!code) {
+        msgEl.textContent = "コードがありません";
+        return;
+      }
+      try {
+        const res = await fetch(
+          APP_CONFIG.AZURE_FUNCTION_URL,
+          {
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({
+              userId: code,
+              points: 150,
+              scanInfo: {
+                qrText:    code,
+                timestamp: new Date().toISOString()
+              }
+            })
+          }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        msgEl.textContent = "ポイントを付与しました！";
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = "付与に失敗しました";
+      }
+    })();
   </script>
 </body>
 </html>
