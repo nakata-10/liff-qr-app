@@ -17,6 +17,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     statusEl.classList.add('visible');
 
     generateQrCode();
+
+    // 4) ポイント取得ポーリング開始（匿名アクセス）
+    const idToken = liff.getIDToken();
+    const userId  = liff.getContext().userId || "";
+    startPointPolling(userId, idToken);
+
   } catch (err) {
     console.error('LIFF 初期化エラー', err);
     const statusEl = document.getElementById('status');
@@ -30,15 +36,14 @@ function generateQrCode() {
 
   // LIFF から情報取得
   const idToken = liff.getIDToken();
-  const userId  = liff.getContext().userId || "";  // 必要に応じてダミーを設定
-  const code    = userId;                          // ユニークコードとして userId を利用
-  startPointPolling(userId, idToken);
+  const userId  = liff.getContext().userId || "";  
+  const code    = userId;  // ユニークコードとして userId を利用
 
-  // ↓ ここをテンプレートリテラルで組み立て
-  const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
-                  `?code=${encodeURIComponent(code)}` +
-                  `&idToken=${encodeURIComponent(idToken)}` + //この部分をお店の名前に変更する、＋GASのデータベースからお店の名前を取得するようにする。
-                  `&userId=${encodeURIComponent(userId)}`;
+  // スキャン先 URL を組み立て
+  const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html`
+                + `?code=${encodeURIComponent(code)}`
+                + `&idToken=${encodeURIComponent(idToken)}`
+                + `&userId=${encodeURIComponent(userId)}`;
 
   // QR コード描画
   const qEl = document.getElementById('qrcode');
@@ -54,22 +59,18 @@ function generateQrCode() {
   const statusEl = document.getElementById('status');
   statusEl.textContent = 'この QR コードをスキャンしてください';
 }
-// ──────── ここから追記 ────────
+
 let pollIntervalId = null;
 function startPointPolling(userId, idToken) {
   const displayEl = document.getElementById("pointDisplay");
+  // config.js の AZURE_FUNCTION_URL を使用
+  const apiUrl = `${APP_CONFIG.AZURE_FUNCTION_URL}`
+               + `?userId=${encodeURIComponent(userId)}`
+               + `&code=${encodeURIComponent(userId)}`;
 
-   // LIFF から情報取得
-  const idToken = liff.getIDToken();
-  const userId  = liff.getContext().userId || "";  // 必要に応じてダミーを設定
-  const code    = userId;                          // ユニークコードとして userId を利用
-  
-  // クエリ文字列に Function Key を付与
-  const apiUrl = `${APP_CONFIG.AZURE_FUNCTION_URL}?code=${encodeURIComponent(code)}`
-               + `&userId=${encodeURIComponent(userId)}`
-               + `&functionKey=${encodeURIComponent(APP_CONFIG.FUNCTION_KEY)}`;
+  console.log("▶ ポーリング先URL:", apiUrl);
 
-  // 5 秒ごとに API を呼び出し
+  // 5秒ごとに API を叩いてポイントを取得
   pollIntervalId = setInterval(async () => {
     try {
       const res = await fetch(apiUrl, {
@@ -81,7 +82,7 @@ function startPointPolling(userId, idToken) {
       displayEl.textContent = `現在のポイント：${data.points} pt`;
       displayEl.classList.add('visible');
 
-      // 条件を満たしたらポーリング停止（例：1pt 以上になったら）
+      // ポイントが 1 以上になったら一度だけ停止
       if (data.points >= 1) {
         clearInterval(pollIntervalId);
       }
@@ -89,8 +90,7 @@ function startPointPolling(userId, idToken) {
       console.error("ポイント取得エラー", err);
       displayEl.textContent = "ポイント取得エラー";
       displayEl.classList.add('visible');
-      // 必要なら clearInterval(pollIntervalId) して停止
+      // 必要なら clearInterval(pollIntervalId); で停止
     }
   }, 5000);
 }
-// ──────── ここまで追記 ────────
