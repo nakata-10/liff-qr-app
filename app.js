@@ -81,13 +81,15 @@ function startPointPolling(userId, idToken) {
           "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify({             // クエリではなく JSON ボディ
-        
-          idToken: idToken,    // 関数で req.body.idToken を読むなら
-          userId:  userId
-          
-          
-        })
-      });
+            userId,
+            points: 10,        // 必要なポイント数に合わせて変更
+            scanInfo: {
+              qrText: qrCode,
+              timestamp: new Date().toISOString()
+            }
+          })
+        }
+      );
 
       console.log("▶ リクエスト送信完了, status=", res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
