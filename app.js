@@ -2,30 +2,29 @@
 
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 1) LIFF 初期化
+    // 1. LIFF 初期化
     await liff.init({ liffId: APP_CONFIG.LIFF_ID });
 
-    // 2) 未ログインならログイン画面へ
+    // 2. 未ログインならログイン
     if (!liff.isLoggedIn()) {
       return liff.login({ redirectUri: location.href });
     }
 
-    // 3) ユーザーID取得
-    const userId  = liff.getContext().userId;
-    const idToken = liff.getIDToken(); // 今回は使わず、scan.html で使います
+    // 3. ユーザーID取得
+    const userId = liff.getContext().userId;
 
-    // 4) QRコード生成
+    // 4. QRコード生成
     const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html?code=${encodeURIComponent(userId)}`;
     const qEl = document.getElementById("qrcode");
     qEl.innerHTML = "";
     new QRCode(qEl, { text: scanUrl, width: 300, height: 300 });
     qEl.style.display = "block";
 
-    // 5) ポイント表示ポーリング開始
+    // 5. ポイント表示ポーリング開始
     startPointPolling(userId);
 
   } catch (err) {
-    console.error("LIFF 初期化エラー", err);
+    console.error("LIFF エラー", err);
   }
 });
 
@@ -40,7 +39,7 @@ function startPointPolling(userId) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      // スキャンされていなければ表示せず
+      // スキャンされていなければ何もしない
       if (!data.scanned) return;
 
       // 累計ポイントを表示
@@ -55,7 +54,7 @@ function startPointPolling(userId) {
     }
   }
 
-  // ページ表示直後と以降3秒ごとにチェック
+  // 即時１回呼び出し＋以降3秒ごと
   fetchPoints();
   pollIntervalId = setInterval(fetchPoints, 3000);
 }
