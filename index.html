@@ -1,29 +1,45 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR ポイント表示</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>QRポイント獲得アプリ</title>
 
   <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- QR ライブラリ不要 -->
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- 設定 -->
   <script src="config.js"></script>
+  <!-- アプリ本体ロジック -->
   <script src="app.js" defer></script>
 
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2rem; }
-    #title { font-size: 1.5rem; margin-bottom: 1rem; }
+    body { text-align:center; padding:2rem; font-family:sans-serif; }
+    h1 { margin-bottom: .5rem; }
+    p { margin-top:0; }
+
+    /* QRコード */
+    #qrcode {
+      margin: 1rem auto;
+      width: 300px;
+      height: 300px;
+    }
+
+    /* ポイント表示 */
     #pointDisplay {
       font-size: 2rem;
       font-weight: bold;
+      margin-top: 1rem;
       display: none;
     }
   </style>
 </head>
 <body>
-  <h1 id="title">累計ポイント表示</h1>
-  <p>QRを読み込んだあと、ここにポイントがスグに出ます</p>
+  <h1>QRポイント獲得アプリ</h1>
+  <p>このQRをスキャンしてください</p>
+
+  <div id="qrcode"></div>
   <div id="pointDisplay">現在のポイント：-- pt</div>
 </body>
 </html>
