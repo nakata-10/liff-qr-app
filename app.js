@@ -62,15 +62,12 @@ function generateQrCode(userId, idToken) {
 }
 
 /**
- * ユーザーIDとトークンを引数で受け取って定期的にポイントを取得
+ * ユーザーIDとトークンを引数で受け取って定期的にポイントを取得（POST）
  */
 let pollIntervalId = null;
 function startPointPolling(userId, idToken) {
   const displayEl = document.getElementById("pointDisplay");
-  // config.js の AZURE_FUNCTION_URL を使用
-  const apiUrl = `${APP_CONFIG.AZURE_FUNCTION_URL}`
-               + `?userId=${encodeURIComponent(userId)}`
-               + `&code=${encodeURIComponent(userId)}`;
+  const apiUrl = APP_CONFIG.AZURE_FUNCTION_URL;
 
   console.log("▶ ポーリング先URL:", apiUrl);
 
@@ -78,13 +75,23 @@ function startPointPolling(userId, idToken) {
   pollIntervalId = setInterval(async () => {
     try {
       const res = await fetch(apiUrl, {
-        headers: { Authorization: `Bearer ${idToken}` }
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          userId:  userId,
+          code:    userId,    // Azure Function が req.body.code を期待する場合
+          idToken: idToken    // 必要に応じて
+        })
       });
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       // { points: 123 } の形式を想定
       displayEl.textContent = `現在のポイント：${data.points} pt`;
-      displayEl.classList.add('visible');
+      displayEl.classList.add("visible");
 
       // 1pt 以上になったら一度だけ停止
       if (data.points >= 1) {
@@ -93,7 +100,7 @@ function startPointPolling(userId, idToken) {
     } catch (err) {
       console.error("ポイント取得エラー", err);
       displayEl.textContent = "ポイント取得エラー";
-      displayEl.classList.add('visible');
+      displayEl.classList.add("visible");
       // 必要なら clearInterval(pollIntervalId);
     }
   }, 5000);
