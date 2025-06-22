@@ -49,7 +49,7 @@ function startPointPolling(userId) {
         setTimeout(() => {
           // キャッシュを回避して強制リロード
           window.location.href = window.location.href.split("?")[0] + "?_=" + Date.now();
-        }, 1000);
+        }, 10000);
       }
     } catch (err) {
       console.error("ポイント取得エラー", err);
