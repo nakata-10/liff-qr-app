@@ -16,7 +16,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     statusEl.textContent = 'QRコードを生成中…';
     statusEl.classList.add('visible');
 
-    // 4) LIFF 情報を取得（一度だけ宣言）
+    // 4) LIFF トークン・ユーザー情報取得
     const idToken = liff.getIDToken();
     const userId  = liff.getContext().userId || "";
 
@@ -33,7 +33,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 /**
- * ユーザーIDとトークンを引数で受け取って QR を生成
+ * QRコードを生成して表示する
  */
 function generateQrCode(userId, idToken) {
   console.log("▶ generateQrCode called");
@@ -46,7 +46,7 @@ function generateQrCode(userId, idToken) {
                 + `&idToken=${encodeURIComponent(idToken)}`
                 + `&userId=${encodeURIComponent(userId)}`;
 
-  // QR コード描画
+  // QRコード描画
   const qEl = document.getElementById('qrcode');
   qEl.innerHTML = '';
   new QRCode(qEl, {
@@ -55,14 +55,14 @@ function generateQrCode(userId, idToken) {
     height: 300
   });
 
-  // 要素を表示
+  // QR要素とステータスを表示
   qEl.classList.add('visible');
   const statusEl = document.getElementById('status');
   statusEl.textContent = 'この QR コードをスキャンしてください';
 }
 
 /**
- * ユーザーIDとトークンを引数で受け取って定期的にポイントを取得（POST）
+ * 定期的に Azure Function に POST してポイントを取得し、表示する
  */
 let pollIntervalId = null;
 function startPointPolling(userId, idToken) {
@@ -71,26 +71,22 @@ function startPointPolling(userId, idToken) {
 
   console.log("▶ ポーリング先URL:", apiUrl);
 
-  // 5秒ごとに API を叩いてポイントを取得
   pollIntervalId = setInterval(async () => {
     try {
       const res = await fetch(apiUrl, {
-        method:  "POST",                    // ここを POST に固定
+        method:  "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${idToken}`
         },
-        body: JSON.stringify({             // クエリではなく JSON ボディ
-            userId:   userId,
-            idToken:  idToken,
-            points:   1,
-            scanInfo: {
-              code:      userId,
-              timestamp: Date.now()
-            }
-          })
-        }
-      );
+        body: JSON.stringify({
+          userId:  userId,
+          idToken: idToken,
+          scanInfo: {
+            timestamp: new Date().toISOString()
+          }
+        })
+      });
 
       console.log("▶ リクエスト送信完了, status=", res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -99,7 +95,7 @@ function startPointPolling(userId, idToken) {
       displayEl.textContent = `現在のポイント：${data.points} pt`;
       displayEl.classList.add("visible");
 
-      // 1pt 以上になったら一度だけ停止
+      // ポイントが 1pt 以上になったら一度だけ停止
       if (data.points >= 1) {
         clearInterval(pollIntervalId);
       }
