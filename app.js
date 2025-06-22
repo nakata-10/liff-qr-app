@@ -81,7 +81,7 @@ function startPointPolling(userId, idToken) {
         },
         body: JSON.stringify({
           userId:  userId,
-          idToken: idToken,
+          points: 10,
           scanInfo: {
             timestamp: new Date().toISOString()
           }
