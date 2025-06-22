@@ -92,8 +92,9 @@ function startPointPolling(userId, idToken) {
       console.log("▶ リクエスト送信完了, status=", res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      console.log("▶ レスポンス全体:", data);
 
-      displayEl.textContent = `現在のポイント：${json.totalPoints} pt`;
+      displayEl.textContent = `現在のポイント：${data.points} pt`;
       displayEl.classList.add("visible");
 
       // ポイントが 1pt 以上になったら一度だけ停止
