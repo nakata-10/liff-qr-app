@@ -17,9 +17,11 @@
   <script>
     (async () => {
       const params = new URLSearchParams(location.search);
-      const code   = params.get("code");
-      const msgEl  = document.getElementById("msg");
-      if (!code) {
+      const code    = params.get("code")    || "";
+      const idToken = params.get("idToken") || "";
+      const msgEl   = document.getElementById("msg");
+
+      if (!code || !idToken) {
         msgEl.textContent = "不正なアクセスです";
         return;
       }
@@ -27,7 +29,10 @@
       try {
         const res = await fetch(APP_CONFIG.AZURE_FUNCTION_URL, {
           method: "POST",
-          headers: { "Content-Type":"application/json" },
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": "Bearer " + idToken    // ← ここを追加
+          },
           body: JSON.stringify({
             userId: code,
             points: 150,
