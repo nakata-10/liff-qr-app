@@ -81,11 +81,12 @@ function startPointPolling(userId, idToken) {
           "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify({             // クエリではなく JSON ボディ
-            userId,
-            points: 10,        // 必要なポイント数に合わせて変更
+            userId:   userId,
+            idToken:  idToken,
+            points:   1,
             scanInfo: {
-              qrText: qrCode,
-              timestamp: new Date().toISOString()
+              code:      userId,
+              timestamp: Date.now()
             }
           })
         }
