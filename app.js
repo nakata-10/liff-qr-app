@@ -81,8 +81,7 @@ function startPointPolling(userId, idToken) {
           "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify({             // クエリではなく JSON ボディ
-          
-          code:    userId,    // 関数で req.body.code を読むなら
+        
           idToken: idToken,    // 関数で req.body.idToken を読むなら
           userId:  userId
           
