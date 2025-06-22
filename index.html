@@ -1,3 +1,4 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,9 +10,9 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- アプリ設定 -->
+  <!-- 設定 -->
   <script src="config.js"></script>
-  <!-- アプリ本体 -->
+  <!-- 本体ロジック -->
   <script src="app.js" defer></script>
 
   <style>
@@ -39,9 +40,7 @@
   <h1>QRポイント獲得アプリ</h1>
   <p id="sub">このQRをスキャンしてください</p>
 
-  <!-- ここにQRが出ます -->
   <div id="qrcode"></div>
-  <!-- ここにポイントが出ます -->
   <div id="pointDisplay">現在のポイント：-- pt</div>
 </body>
 </html>
