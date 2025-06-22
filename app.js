@@ -45,7 +45,7 @@ function generateQrCode(userId, idToken) {
                 + `?code=${encodeURIComponent(userId)}`
                 + `&idToken=${encodeURIComponent(idToken)}`;
                 + `&userId=${encodeURIComponent(userId)}`;
-                
+
   const qEl = document.getElementById('qrcode');
   qEl.innerHTML = '';
   new QRCode(qEl, {
@@ -85,7 +85,7 @@ function startPointPolling(userId, idToken) {
           },
           body: JSON.stringify({
             userId:  userId,
-            points:  10,
+            points:  150,
             scanInfo: {
               qrText:    userId,
               timestamp: new Date().toISOString()
