@@ -15,11 +15,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     const idToken = liff.getIDToken();
 
     // 4) QRコード生成 (scan.html に code と idToken を渡す)
-    // ↓ ここをテンプレートリテラルで組み立て
-    const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
-                  `?code=${encodeURIComponent(code)}` +
-                  `&idToken=${encodeURIComponent(idToken)}` + //この部分をお店の名前に変更する、＋GASのデータベースからお店の名前を取得するようにする。
-                  `&userId=${encodeURIComponent(userId)}`;
+    const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html`
+                  + `?code=${encodeURIComponent(userId)}`
+                  + `&idToken=${encodeURIComponent(idToken)}`;
     const qEl = document.getElementById("qrcode");
     qEl.innerHTML = "";
     new QRCode(qEl, { text: scanUrl, width: 300, height: 300 });
@@ -63,3 +61,8 @@ function startPointPolling(userId) {
   fetchPoints();
   pollIntervalId = setInterval(fetchPoints, 3000);
 }
+// ↓ ここをテンプレートリテラルで組み立て
+  const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
+                  `?code=${encodeURIComponent(code)}` +
+                  `&idToken=${encodeURIComponent(idToken)}` + //この部分をお店の名前に変更する、＋GASのデータベースからお店の名前を取得するようにする。
+                  `&userId=${encodeURIComponent(userId)}`;
