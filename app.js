@@ -10,17 +10,18 @@ window.addEventListener("DOMContentLoaded", async () => {
       return liff.login({ redirectUri: window.location.href });
     }
 
-    // 3) ログイン済み → UI 表示 & QR を生成
+    // 3) UI 表示
     document.getElementById('title').classList.add('visible');
     const statusEl = document.getElementById('status');
     statusEl.textContent = 'QRコードを生成中…';
     statusEl.classList.add('visible');
 
-    generateQrCode();
-
-    // 4) ポイント取得ポーリング開始（匿名アクセス）
+    // 4) LIFF 情報を取得（一度だけ宣言）
     const idToken = liff.getIDToken();
     const userId  = liff.getContext().userId || "";
+
+    // 5) QR コード生成 & ポーリング開始
+    generateQrCode(userId, idToken);
     startPointPolling(userId, idToken);
 
   } catch (err) {
@@ -31,13 +32,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function generateQrCode() {
+/**
+ * ユーザーIDとトークンを引数で受け取って QR を生成
+ */
+function generateQrCode(userId, idToken) {
   console.log("▶ generateQrCode called");
 
-  // LIFF から情報取得
-  const idToken = liff.getIDToken();
-  const userId  = liff.getContext().userId || "";  
-  const code    = userId;  // ユニークコードとして userId を利用
+  const code = userId;  // ユニークコードとして userId を利用
 
   // スキャン先 URL を組み立て
   const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html`
@@ -60,6 +61,9 @@ function generateQrCode() {
   statusEl.textContent = 'この QR コードをスキャンしてください';
 }
 
+/**
+ * ユーザーIDとトークンを引数で受け取って定期的にポイントを取得
+ */
 let pollIntervalId = null;
 function startPointPolling(userId, idToken) {
   const displayEl = document.getElementById("pointDisplay");
@@ -82,7 +86,7 @@ function startPointPolling(userId, idToken) {
       displayEl.textContent = `現在のポイント：${data.points} pt`;
       displayEl.classList.add('visible');
 
-      // ポイントが 1 以上になったら一度だけ停止
+      // 1pt 以上になったら一度だけ停止
       if (data.points >= 1) {
         clearInterval(pollIntervalId);
       }
@@ -90,7 +94,7 @@ function startPointPolling(userId, idToken) {
       console.error("ポイント取得エラー", err);
       displayEl.textContent = "ポイント取得エラー";
       displayEl.classList.add('visible');
-      // 必要なら clearInterval(pollIntervalId); で停止
+      // 必要なら clearInterval(pollIntervalId);
     }
   }, 5000);
 }
