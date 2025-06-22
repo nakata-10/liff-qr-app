@@ -32,6 +32,7 @@ function generateQrCode() {
   const idToken = liff.getIDToken();
   const userId  = liff.getContext().userId || "";  // 必要に応じてダミーを設定
   const code    = userId;                          // ユニークコードとして userId を利用
+  startPointPolling(userId, idToken);
 
   // ↓ ここをテンプレートリテラルで組み立て
   const scanUrl = `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
@@ -53,3 +54,43 @@ function generateQrCode() {
   const statusEl = document.getElementById('status');
   statusEl.textContent = 'この QR コードをスキャンしてください';
 }
+// ──────── ここから追記 ────────
+let pollIntervalId = null;
+function startPointPolling(userId, idToken) {
+  const displayEl = document.getElementById("pointDisplay");
+
+   // LIFF から情報取得
+  const idToken = liff.getIDToken();
+  const userId  = liff.getContext().userId || "";  // 必要に応じてダミーを設定
+  const code    = userId;                          // ユニークコードとして userId を利用
+  
+  // クエリ文字列に Function Key を付与
+  const apiUrl = `${APP_CONFIG.AZURE_FUNCTION_URL}?code=${encodeURIComponent(code)}`
+               + `&userId=${encodeURIComponent(userId)}`
+               + `&functionKey=${encodeURIComponent(APP_CONFIG.FUNCTION_KEY)}`;
+
+  // 5 秒ごとに API を呼び出し
+  pollIntervalId = setInterval(async () => {
+    try {
+      const res = await fetch(apiUrl, {
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // { points: 123 } の形式を想定
+      displayEl.textContent = `現在のポイント：${data.points} pt`;
+      displayEl.classList.add('visible');
+
+      // 条件を満たしたらポーリング停止（例：1pt 以上になったら）
+      if (data.points >= 1) {
+        clearInterval(pollIntervalId);
+      }
+    } catch (err) {
+      console.error("ポイント取得エラー", err);
+      displayEl.textContent = "ポイント取得エラー";
+      displayEl.classList.add('visible');
+      // 必要なら clearInterval(pollIntervalId) して停止
+    }
+  }, 5000);
+}
+// ──────── ここまで追記 ────────
