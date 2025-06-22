@@ -67,7 +67,7 @@ function generateQrCode(userId, idToken) {
 let pollIntervalId = null;
 function startPointPolling(userId, idToken) {
   const displayEl = document.getElementById("pointDisplay");
-  const apiUrl = APP_CONFIG.AZURE_FUNCTION_URL;
+  const apiUrl = APP_CONFIG.AZURE_FUNCTION_URL;  // 例: https://line-func-app.azurewebsites.net/awardPoints
 
   console.log("▶ ポーリング先URL:", apiUrl);
 
@@ -75,21 +75,25 @@ function startPointPolling(userId, idToken) {
   pollIntervalId = setInterval(async () => {
     try {
       const res = await fetch(apiUrl, {
-        method:  "POST",
+        method:  "POST",                    // ここを POST に固定
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + idToken 
+          "Authorization": `Bearer ${idToken}`
         },
-        body: JSON.stringify({
-          code,
-          idToken,    // Azure Function が req.body.code を期待する場合
-          userId    // 必要に応じて
+        body: JSON.stringify({             // クエリではなく JSON ボディ
+          
+          code:    userId,    // 関数で req.body.code を読むなら
+          idToken: idToken,    // 関数で req.body.idToken を読むなら
+          userId:  userId
+          
+          
         })
       });
 
+      console.log("▶ リクエスト送信完了, status=", res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      // { points: 123 } の形式を想定
+
       displayEl.textContent = `現在のポイント：${data.points} pt`;
       displayEl.classList.add("visible");
 
