@@ -63,7 +63,7 @@ function startPointPolling(userId) {
           // 現在のパスに ?reloaded=1 を付与して強制リロード
           const base = window.location.pathname;
           window.location.href = `${base}?reloaded=1`;
-        }, 10000); // 任意の遅延(ms)
+        }, 2000); // 任意の遅延(ms)
       }
 
     } catch (err) {
