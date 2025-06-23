@@ -2,30 +2,31 @@
 
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    // LIFF 初期化
+    // 1) LIFF 初期化
     await liff.init({ liffId: APP_CONFIG.LIFF_ID });
 
-    // 未ログインならログイン
+    // 2) 未ログインならログイン
     if (!liff.isLoggedIn()) {
       return liff.login({ redirectUri: location.href });
     }
 
+    // 3) userId と idToken を取得（idToken は scan.html 用）
     const userId  = liff.getContext().userId;
     const idToken = liff.getIDToken();
 
-    // QRコード生成 (scan.html へのリンクに code と idToken を渡す)
+    // 4) QRコード生成 (scan.html に code と idToken を渡す)
     const scanUrl =
       `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
       `?code=${encodeURIComponent(userId)}` +
       `&idToken=${encodeURIComponent(idToken)}`;
-
     const qEl = document.getElementById("qrcode");
     qEl.innerHTML = "";
-    new QRCode(qEl, { text: scanUrl, width: 300, height: 300 });
+    new QRCode(qEl, { text: scanUrl, width:300, height:300 });
     qEl.style.display = "block";
 
-    // ポイント表示ポーリング開始
+    // 5) ポイント表示ポーリング開始
     startPointPolling(userId);
+
   } catch (err) {
     console.error("LIFF 初期化エラー", err);
   }
@@ -35,11 +36,14 @@ let pollIntervalId = null;
 function startPointPolling(userId) {
   const pointEl   = document.getElementById("pointDisplay");
   const resultUrl = `${APP_CONFIG.SCAN_RESULT_URL}?code=${encodeURIComponent(userId)}`;
-  let reloaded = false;
+
+  // URL パラメータに reloaded があるかどうかで一度きりリロード判定
+  const url = new URL(window.location.href);
+  const hasReloaded = url.searchParams.has("reloaded");
 
   async function fetchPoints() {
     try {
-      const res = await fetch(resultUrl, { cache: "no-store" });
+      const res  = await fetch(resultUrl, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -50,18 +54,18 @@ function startPointPolling(userId) {
       pointEl.textContent = `現在のポイント：${data.totalPoints} pt`;
       pointEl.style.display = "block";
 
-      // ポーリングを停止
+      // ポーリング停止
       clearInterval(pollIntervalId);
 
-      // 一度だけ、指定秒後に自動リロード
-      if (!reloaded) {
-        reloaded = true;
+      // まだリロードしていなければ、一度だけ自動リロード
+      if (!hasReloaded) {
         setTimeout(() => {
-          // URL にキャッシュバスターを付けて強制リロード
-          const base = window.location.href.split("?")[0];
-          window.location.href = `${base}?_=${Date.now()}`;
-        }, 7000);  // ← リロードまでの遅延（ミリ秒）を調整
+          // 現在のパスに ?reloaded=1 を付与して強制リロード
+          const base = window.location.pathname;
+          window.location.href = `${base}?reloaded=1`;
+        }, 2000); // 任意の遅延(ms)
       }
+
     } catch (err) {
       console.error("ポイント取得エラー", err);
     }
