@@ -1,267 +1,171 @@
 <!DOCTYPE html>
-
 <html lang="ja">
-
 <head>
-
   <meta charset="UTF-8">
-
   <title>クーポンスライダー</title>
-
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-
     .slider-container {
-
       width: 320px;
-
       margin: 0 auto;
-
       overflow: hidden;
-
       position: relative;
-
     }
-
     .slider-track {
-
       display: flex;
-
       transition: transform 0.3s;
-
     }
-
     .slide {
-
       min-width: 320px;
-
       box-sizing: border-box;
-
       padding: 10px;
-
       text-align: center;
-
     }
-
     .slide img {
-
       width: 200px;
-
       height: 200px;
-
       object-fit: cover;
-
       border-radius: 10px;
-
     }
-
     .slider-btn {
-
       position: absolute;
-
       top: 50%;
-
       transform: translateY(-50%);
-
       background: #fff;
-
       border: 1px solid #ccc;
-
       border-radius: 50%;
-
       width: 32px;
-
       height: 32px;
-
       cursor: pointer;
-
       font-size: 18px;
-
       z-index: 2;
-
     }
-
     .slider-btn.prev { left: 0; }
-
     .slider-btn.next { right: 0; }
-
     .info { margin-bottom: 10px; }
-
+    #storeTabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      justify-content: center;
+    }
+    .store-tab {
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      background: #f8f8f8;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .store-tab.active {
+      background: #4285f4;
+      color: #fff;
+      border-color: #4285f4;
+    }
   </style>
-
 </head>
-
 <body>
-
+  <div id="storeTabs"></div>
   <div class="info">
-
     <span id="userName"></span> さん<br>
-
     <span id="shopName"></span>
-
   </div>
-
   <div class="slider-container">
-
     <button class="slider-btn prev" onclick="moveSlide(-1)">&#8592;</button>
-
     <div class="slider-track" id="sliderTrack"></div>
-
     <button class="slider-btn next" onclick="moveSlide(1)">&#8594;</button>
-
   </div>
-
   <script>
-
-    // 受け取るデータ例
-
-    const couponData = {
-
-      userName: "山田太郎",
-
-      shopName: "カフェ・ド・サン",
-
-      menuNames: ["パンケーキ", "パスタ", "コーヒー"],
-
-      couponQrUrls: [
-
-        "image/money_coin_america_10_reverse.png",
-
-        "image/money_coin_america_10_reverse.png",
-
-        "image/money_coin_america_10_reverse.png"
-
-      ],
-
-      menuImages: [
-
-        "image/money_coin_america_10_reverse.png",
-
-        "image/money_coin_america_10_reverse.png",
-
-        "image/money_coin_america_10_reverse.png"
-
-      ],
-
-      menuDescriptions: [
-
-        "ふわふわのパンケーキに特製シロップをかけてどうぞ。",
-
-        "本格イタリアンパスタ。クーポンでお得！",
-
-        "自家焙煎コーヒー。香り豊かです。"
-
-      ]
+    // Firebase設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWHQk8BgmQudT9GvlZpiP59w7dhVg7ifU",
+      authDomain: "kinakomoti-77d00.firebaseapp.com",
+      projectId: "kinakomoti-77d00",
+      storageBucket: "kinakomoti-77d00.appspot.com",
+      messagingSenderId: "1041967003917",
+      appId: "1:1041967003917:web:e172dba27978de2b005844",
+      measurementId: "G-6FV1BEECF0"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-
-
-    // 表示部分
-
-    document.getElementById('userName').textContent = couponData.userName;
-
-    document.getElementById('shopName').textContent = couponData.shopName;
-
-
-    const sliderTrack = document.getElementById('sliderTrack');
-
-    couponData.menuNames.forEach((name, i) => {
-
-      const slide = document.createElement('div');
-
-      slide.className = 'slide';
-
-      slide.innerHTML = `
-
-        <h3>${name}</h3>
-
-        <img src="${couponData.menuImages[i]}" alt="${name}">
-
-        <p>${couponData.menuDescriptions[i]}</p>
-
-        <a href="${couponData.couponQrUrls[i]}" target="_blank">
-
-          <img src="${couponData.couponQrUrls[i]}" alt="クーポンQR" width="100">
-
-        </a>
-
-        <div>クーポンQRコード</div>
-
-      `;
-
-      sliderTrack.appendChild(slide);
-
-    });
-
-
-
-    let currentIndex = 0;
-
-    function moveSlide(dir) {
-
-      const total = couponData.menuNames.length;
-
-      currentIndex += dir;
-
-      if (currentIndex < 0) currentIndex = 0;
-
-      if (currentIndex > total - 1) currentIndex = total - 1;
-
-      sliderTrack.style.transform = `translateX(${-320 * currentIndex}px)`;
-
+    // 店舗一覧（コレクション名一覧）を取得してタブを作成
+    async function createStoreTabs() {
+      // コレクション名一覧を取得（Firestoreのコレクション一覧取得APIはないので、店舗名は配列で管理するか、別コレクションで管理するのが一般的）
+      // ここでは例として配列で用意
+      const storeNames = ["龍谷食堂", "宮本屋"];
+      const tabContainer = document.getElementById('storeTabs');
+      tabContainer.innerHTML = "";
+      storeNames.forEach((store, idx) => {
+        const tab = document.createElement('button');
+        tab.textContent = store;
+        tab.className = 'store-tab';
+        tab.onclick = () => loadCoupons(store);
+        if (idx === 0) tab.classList.add('active');
+        tabContainer.appendChild(tab);
+      });
+      // 最初の店舗のクーポンを表示
+      if (storeNames.length > 0) {
+        loadCoupons(storeNames[0]);
+      }
     }
 
+    // クーポンデータを取得してスライド表示
+    async function loadCoupons(storeName) {
+      // タブのactive切り替え
+      document.querySelectorAll('.store-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent === storeName);
+      });
+
+      // ユーザー名は仮で固定
+      document.getElementById('userName').textContent = "ゲスト";
+      document.getElementById('shopName').textContent = storeName;
+
+      const snapshot = await db.collection(storeName).get();
+      const sliderTrack = document.getElementById('sliderTrack');
+      sliderTrack.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const name = data.name || doc.id;
+        const image = data.cuisine_URL;
+        let discountText = "";
+        if (data.discountAmount) {
+          discountText = `${data.discountAmount}円引き`;
+        } else if (data.discountRate) {
+          discountText = `${data.discountRate}%引き`;
+        } else {
+          discountText = "割引なし";
+        }
+
+        const slide = document.createElement('div');
+        slide.className = 'slide';
+        slide.innerHTML = `
+          <h3>${name}</h3>
+          <img src="${image}" alt="${name}">
+          <p>${discountText}</p>
+        `;
+        sliderTrack.appendChild(slide);
+      });
+
+      // スライダー初期化
+      currentIndex = 0;
+      moveSlide(0);
+    }
+
+    // スライダー制御
+    let currentIndex = 0;
+    function moveSlide(dir) {
+      const total = document.querySelectorAll('.slide').length;
+      currentIndex += dir;
+      if (currentIndex < 0) currentIndex = 0;
+      if (currentIndex > total - 1) currentIndex = total - 1;
+      document.getElementById('sliderTrack').style.transform = `translateX(${-320 * currentIndex}px)`;
+    }
+
+    // 初期化
+    window.addEventListener('DOMContentLoaded', createStoreTabs);
   </script>
-
 </body>
-
 </html>
-
-
-
-<!--
-
-// 例：サーバーやGASから返すJSON
-
-const couponData = {
-
-  userName: "山田太郎",
-
-  shopName: "カフェ・ド・サン",
-
-  menuNames: ["パンケーキ", "パスタ", "コーヒー"],
-
-  couponQrUrls: [
-
-    "https://example.com/qr1.png",
-
-    "https://example.com/qr2.png",
-
-    "https://example.com/qr3.png"
-
-  ],
-
-  menuImages: [
-
-    "https://example.com/pancake.jpg",
-
-    "https://example.com/pasta.jpg",
-
-    "https://example.com/coffee.jpg"
-
-  ],
-
-  menuDescriptions: [
-
-    "ふわふわのパンケーキに特製シロップをかけてどうぞ。",
-
-    "本格イタリアンパスタ。クーポンでお得！",
-
-    "自家焙煎コーヒー。香り豊かです。"
-
-  ]
-
-};
-
-// これをfetchのレスポンスやGASのdoGet/doPostで返してください
-
--->
