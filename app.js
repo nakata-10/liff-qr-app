@@ -28,7 +28,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     startPointPolling(userId);
 
     // 6) SignalR ハブ接続開始
-    await startSignalR();
+    startSignalR(userId);
 
   } catch (err) {
     console.error("LIFF 初期化エラー", err);
@@ -62,10 +62,11 @@ function startPointPolling(userId) {
   pollIntervalId = setInterval(fetchPoints, 3000);
 }
 
-async function startSignalR() {
+async function startSignalR(userId) {
   try {
-    // 1) negotiate で接続情報を取得
-    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL, { method: "POST" });
+    // --- negotiate の呼び出し ---
+    const negotiateUrl = `${APP_CONFIG.NEGOTIATE_URL}?code=${encodeURIComponent(userId)}`;
+    const resp = await fetch(negotiateUrl,{ method: "POST" });
     if (!resp.ok) throw new Error(`negotiate HTTP ${resp.status}`);
     const connInfo = await resp.json();
 
