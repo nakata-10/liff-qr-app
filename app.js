@@ -28,7 +28,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await fetchAndDisplayTotal(userId);
 
     // 6) SignalR ハブ接続開始（リアルタイム更新）
-    startSignalR(userId);
+    startSignalR();
 
   } catch (err) {
     console.error("LIFF 初期化エラー", err);
@@ -57,15 +57,17 @@ async function fetchAndDisplayTotal(userId) {
 
 async function startSignalR() {
   try {
-    console.log("NEGOTIATE_URL:", APP_CONFIG.NEGOTIATE_URL);
+    // 1) ネゴシエート URL を組み立て
+    const negotiateUrl = `${window.APP_CONFIG.NEGOTIATE_URL}?code=${window.APP_CONFIG.NEGOTIATE_FUNCTION_KEY}`;
+    console.log("NEGOTIATE_URL:", negotiateUrl);
 
-    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL);
+    // 2) negotiate を叩いて JSON を取得
+    const resp = await fetch(negotiateUrl, { method: "GET" });
     console.log("negotiate status:", resp.status);
-
     const text = await resp.text();
     console.log("negotiate body:", text);
+    const connInfo = JSON.parse(text);
 
-    const connInfo = JSON.parse(text);     // 必要ならここまで移動;
 
     // 2) ハブ接続を構築
     const connection = new signalR.HubConnectionBuilder()
