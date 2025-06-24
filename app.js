@@ -10,7 +10,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       return liff.login({ redirectUri: location.href });
     }
 
-    // 3) userId と idToken を取得（idToken は scan.html 用）
+    // 3) userId と idToken を取得
     const userId  = liff.getContext().userId;
     const idToken = liff.getIDToken();
 
@@ -24,8 +24,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     new QRCode(qEl, { text: scanUrl, width:300, height:300 });
     qEl.style.display = "block";
 
-    // 5) ポイント表示ポーリング開始
+    // 5) ポイント表示ポーリング開始（フォールバック）
     startPointPolling(userId);
+
+    // 6) SignalR ハブ接続開始
+    startSignalR();
 
   } catch (err) {
     console.error("LIFF 初期化エラー", err);
@@ -37,41 +40,57 @@ function startPointPolling(userId) {
   const pointEl   = document.getElementById("pointDisplay");
   const resultUrl = `${APP_CONFIG.SCAN_RESULT_URL}?code=${encodeURIComponent(userId)}`;
 
-  // URL パラメータに reloaded があるかどうかで一度きりリロード判定
-  const url = new URL(window.location.href);
-  const hasReloaded = url.searchParams.has("reloaded");
-
   async function fetchPoints() {
     try {
       const res  = await fetch(resultUrl, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      // スキャンされていなければ何もしない
       if (!data.scanned) return;
 
       // 累計ポイントを表示
       pointEl.textContent = `現在のポイント：${data.totalPoints} pt`;
       pointEl.style.display = "block";
 
-      // ポーリング停止
       clearInterval(pollIntervalId);
-
-      // まだリロードしていなければ、一度だけ自動リロード
-      if (!hasReloaded) {
-        setTimeout(() => {
-          // 現在のパスに ?reloaded=1 を付与して強制リロード
-          const base = window.location.pathname;
-          window.location.href = `${base}?reloaded=1`;
-        }, 10000); // 任意の遅延(ms)
-      }
-
     } catch (err) {
       console.error("ポイント取得エラー", err);
     }
   }
 
-  // 即時チェック＋以降3秒ごと
   fetchPoints();
   pollIntervalId = setInterval(fetchPoints, 3000);
+}
+
+async function startSignalR() {
+  try {
+    // 1) negotiate で接続情報を取得
+    const resp = await fetch(`${APP_CONFIG.AZURE_FUNCTION_URL.replace(/awardPoints\/?$/, 'negotiate')}`, {
+      method: "POST"
+    });
+    const connInfo = await resp.json();
+
+    // 2) ハブ接続を構築
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(connInfo.url, { accessTokenFactory: () => connInfo.accessToken })
+      .withAutomaticReconnect()
+      .build();
+
+    // 3) scanCompleted イベントを待ち受け
+    connection.on("scanCompleted", ({ userId, totalPoints }) => {
+      console.log("リアルタイム通知:", userId, totalPoints);
+      // ポイント表示を即更新
+      const pointEl = document.getElementById("pointDisplay");
+      pointEl.textContent = `現在のポイント：${totalPoints} pt`;
+      pointEl.style.display = "block";
+      // ポーリングが動いていれば止める
+      if (pollIntervalId) clearInterval(pollIntervalId);
+    });
+
+    // 4) 接続開始
+    await connection.start();
+    console.log("SignalR 接続完了");
+  } catch (err) {
+    console.error("SignalR 接続エラー", err);
+  }
 }
