@@ -9,7 +9,9 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- 設定 -->
+  <!-- SignalR クライアント -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.4/signalr.min.js"></script>
+  <!-- アプリ設定 -->
   <script src="config.js"></script>
   <!-- 本体ロジック -->
   <script src="app.js" defer></script>
@@ -22,7 +24,7 @@
 </head>
 <body>
   <h1>QRポイント獲得画面</h1>
-  <p>このQRをスキャンしてください</p>
+  <p>このQRをスマホでスキャンしてください</p>
   <div id="qrcode"></div>
   <div id="pointDisplay">現在のポイント：-- pt</div>
 </body>
