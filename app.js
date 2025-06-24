@@ -28,7 +28,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     startPointPolling(userId);
 
     // 6) SignalR ハブ接続開始
-    startSignalR();
+    await startSignalR();
 
   } catch (err) {
     console.error("LIFF 初期化エラー", err);
@@ -65,9 +65,8 @@ function startPointPolling(userId) {
 async function startSignalR() {
   try {
     // 1) negotiate で接続情報を取得
-    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL, {
-      method: "POST"
-    });
+    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL, { method: "POST" });
+    if (!resp.ok) throw new Error(`negotiate HTTP ${resp.status}`);
     const connInfo = await resp.json();
 
     // 2) ハブ接続を構築
@@ -76,10 +75,9 @@ async function startSignalR() {
       .withAutomaticReconnect()
       .build();
 
-    // 3) scanCompleted イベントを待ち受け
+    // 3) scanCompleted イベントを受信
     connection.on("scanCompleted", ({ userId, totalPoints }) => {
       console.log("リアルタイム通知:", userId, totalPoints);
-      // ポイント表示を即更新
       const pointEl = document.getElementById("pointDisplay");
       pointEl.textContent = `現在のポイント：${totalPoints} pt`;
       pointEl.style.display = "block";
