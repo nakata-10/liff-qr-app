@@ -65,7 +65,7 @@ function startPointPolling(userId) {
 async function startSignalR() {
   try {
     // 1) negotiate で接続情報を取得
-    const resp = await fetch(`${APP_CONFIG.AZURE_FUNCTION_URL.replace(/awardPoints\/?$/, 'negotiate')}`, {
+    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL, {
       method: "POST"
     });
     const connInfo = await resp.json();
