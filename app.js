@@ -55,11 +55,10 @@ async function fetchAndDisplayTotal(userId) {
   }
 }
 
-async function startSignalR(userId) {
+async function startSignalR() {
   try {
-    // 1) negotiate の呼び出し
-    const negotiateUrl = `${APP_CONFIG.NEGOTIATE_URL}?code=${encodeURIComponent(userId)}`;
-    const resp = await fetch(negotiateUrl, { method: "POST" });
+    // 1) negotiate を GET で呼び出し
+    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL, { method: "GET" });
     if (!resp.ok) throw new Error(`negotiate HTTP ${resp.status}`);
     const connInfo = await resp.json();
 
@@ -71,7 +70,6 @@ async function startSignalR(userId) {
 
     // 3) scanCompleted イベントを受信
     connection.on("scanCompleted", ({ userId, totalPoints }) => {
-      console.log("リアルタイム通知:", userId, totalPoints);
       const pointEl = document.getElementById("pointDisplay");
       pointEl.textContent = `現在のポイント：${totalPoints} pt`;
       pointEl.style.display = "block";
@@ -80,8 +78,8 @@ async function startSignalR(userId) {
     // 4) 接続開始
     await connection.start();
     console.log("SignalR 接続完了");
-
   } catch (err) {
     console.error("SignalR 接続エラー", err);
   }
 }
+
