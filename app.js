@@ -58,9 +58,11 @@ async function fetchAndDisplayTotal(userId) {
 async function startSignalR() {
   try {
     // 1) negotiate を GET で呼び出し
-    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL, { method: "GET" });
-    if (!resp.ok) throw new Error(`negotiate HTTP ${resp.status}`);
-    const connInfo = await resp.json();
+    const resp = await fetch(APP_CONFIG.NEGOTIATE_URL);
+    console.log("negotiate status:", resp.status);
+    const text = await resp.text();
+    console.log("negotiate body:", text);   // ← ここで中身を確認
+    const connInfo = JSON.parse(text);     // 必要ならここまで移動;
 
     // 2) ハブ接続を構築
     const connection = new signalR.HubConnectionBuilder()
