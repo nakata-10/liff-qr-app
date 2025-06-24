@@ -14,7 +14,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     const userId  = liff.getContext().userId;
     const idToken = liff.getIDToken();
 
-    // 4) QRコード生成 (scan.html に code と idToken を渡す)
+    // 4) QRコード生成
     const scanUrl =
       `${APP_CONFIG.SCAN_BASE_URL}/scan.html` +
       `?code=${encodeURIComponent(userId)}` +
@@ -24,10 +24,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     new QRCode(qEl, { text: scanUrl, width:300, height:300 });
     qEl.style.display = "block";
 
-    // 5) ポイント表示ポーリング開始（フォールバック）
-    startPointPolling(userId);
+    // 5) まず一度だけ累計ポイントをフェッチして表示
+    await fetchAndDisplayTotal(userId);
 
-    // 6) SignalR ハブ接続開始
+    // 6) SignalR ハブ接続開始（リアルタイム更新）
     startSignalR(userId);
 
   } catch (err) {
@@ -35,38 +35,31 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-let pollIntervalId = null;
-function startPointPolling(userId) {
-  const pointEl   = document.getElementById("pointDisplay");
-  const resultUrl = `${APP_CONFIG.SCAN_RESULT_URL}?code=${encodeURIComponent(userId)}`;
-
-  async function fetchPoints() {
-    try {
-      const res  = await fetch(resultUrl, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      if (!data.scanned) return;
-
-      // 累計ポイントを表示
+/**
+ * 初回表示用：Azure Function の getScanResult を叩いて
+ * 返ってきた totalPoints を一度だけ表示します
+ */
+async function fetchAndDisplayTotal(userId) {
+  try {
+    const url = `${APP_CONFIG.SCAN_RESULT_URL}?code=${encodeURIComponent(userId)}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.scanned) {
+      const pointEl = document.getElementById("pointDisplay");
       pointEl.textContent = `現在のポイント：${data.totalPoints} pt`;
       pointEl.style.display = "block";
-
-      clearInterval(pollIntervalId);
-    } catch (err) {
-      console.error("ポイント取得エラー", err);
     }
+  } catch (err) {
+    console.error("初期ポイント取得エラー", err);
   }
-
-  fetchPoints();
-  pollIntervalId = setInterval(fetchPoints, 3000);
 }
 
 async function startSignalR(userId) {
   try {
-    // --- negotiate の呼び出し ---
+    // 1) negotiate の呼び出し
     const negotiateUrl = `${APP_CONFIG.NEGOTIATE_URL}?code=${encodeURIComponent(userId)}`;
-    const resp = await fetch(negotiateUrl,{ method: "POST" });
+    const resp = await fetch(negotiateUrl, { method: "POST" });
     if (!resp.ok) throw new Error(`negotiate HTTP ${resp.status}`);
     const connInfo = await resp.json();
 
@@ -82,13 +75,12 @@ async function startSignalR(userId) {
       const pointEl = document.getElementById("pointDisplay");
       pointEl.textContent = `現在のポイント：${totalPoints} pt`;
       pointEl.style.display = "block";
-      // ポーリングが動いていれば止める
-      if (pollIntervalId) clearInterval(pollIntervalId);
     });
 
     // 4) 接続開始
     await connection.start();
     console.log("SignalR 接続完了");
+
   } catch (err) {
     console.error("SignalR 接続エラー", err);
   }
