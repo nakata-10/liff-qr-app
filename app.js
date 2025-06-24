@@ -57,11 +57,14 @@ async function fetchAndDisplayTotal(userId) {
 
 async function startSignalR() {
   try {
-    // 1) negotiate を GET で呼び出し
+    console.log("NEGOTIATE_URL:", APP_CONFIG.NEGOTIATE_URL);
+
     const resp = await fetch(APP_CONFIG.NEGOTIATE_URL);
     console.log("negotiate status:", resp.status);
+
     const text = await resp.text();
-    console.log("negotiate body:", text);   // ← ここで中身を確認
+    console.log("negotiate body:", text);
+
     const connInfo = JSON.parse(text);     // 必要ならここまで移動;
 
     // 2) ハブ接続を構築
